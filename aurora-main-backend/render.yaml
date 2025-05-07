@@ -3,10 +3,12 @@ services:
     name: ai-skin-analyzer-backend
     env: python
     buildCommand: |
-      pip install --upgrade pip
+      python -m pip install --upgrade pip
       pip install -r requirements.txt
+      python manage.py makemigrations
+      python manage.py migrate
       python manage.py collectstatic --noinput
-    startCommand: gunicorn aurora_skin_analyzer.wsgi:application --bind 0.0.0.0:$PORT
+    startCommand: gunicorn aurora_skin_analyzer.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120
     envVars:
       - key: DATABASE_PASSWORD
         value: Dante@2025
@@ -19,4 +21,8 @@ services:
       - key: CORS_ALLOWED_ORIGINS
         value: https://ai-skin-analyzer.vercel.app
       - key: SECRET_KEY
-        generateValue: true 
+        generateValue: true
+      - key: PYTHONPATH
+        value: /opt/render/project/src
+      - key: DJANGO_SETTINGS_MODULE
+        value: aurora_skin_analyzer.settings 
