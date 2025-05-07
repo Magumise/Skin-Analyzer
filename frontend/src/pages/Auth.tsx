@@ -29,6 +29,7 @@ import {
 import { ViewIcon, ViewOffIcon, InfoIcon } from '@chakra-ui/icons';
 import { motion } from 'framer-motion';
 import bgImage from '../new.png';  // Make sure this path matches your image location
+import { authAPI } from '../services/api';
 
 const MotionBox = motion(Box);
 
@@ -173,38 +174,13 @@ const Auth = () => {
 
         console.log('Sending registration data:', registrationData);
 
-        const response = await fetch('http://127.0.0.1:8000/api/users/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(registrationData),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          console.error('Registration error:', data);
-          // Handle specific error messages
-          if (data.email) {
-            throw new Error(data.email[0]);
-          } else if (data.password) {
-            throw new Error(data.password[0]);
-          } else if (data.username) {
-            throw new Error(data.username[0]);
-          } else if (data.detail) {
-            throw new Error(data.detail);
-          } else {
-            throw new Error('Registration failed. Please check your input.');
-          }
-        }
-
-        console.log('Registration successful:', data);
+        const response = await authAPI.register(registrationData);
+        console.log('Registration successful:', response.data);
         
         // Store the tokens in localStorage
-        if (data.tokens) {
-          localStorage.setItem('access_token', data.tokens.access);
-          localStorage.setItem('refresh_token', data.tokens.refresh);
+        if (response.data.tokens) {
+          localStorage.setItem('access_token', response.data.tokens.access);
+          localStorage.setItem('refresh_token', response.data.tokens.refresh);
         }
 
         toast({
@@ -215,11 +191,11 @@ const Auth = () => {
           isClosable: true,
         });
         navigate('/');
-      } catch (error) {
+      } catch (error: any) {
         console.error('Registration error:', error);
         toast({
           title: 'Registration failed',
-          description: error instanceof Error ? error.message : 'Please try again later',
+          description: error.response?.data?.detail || error.message || 'Please try again later',
           status: 'error',
           duration: 3000,
           isClosable: true,
@@ -228,33 +204,18 @@ const Auth = () => {
     } else {
       // Login logic
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/token/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: formData.email,
-            password: formData.password,
-          }),
+        const response = await authAPI.login({
+          email: formData.email,
+          password: formData.password,
         });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          console.error('Login error:', data);
-          if (data.detail) {
-            throw new Error(data.detail);
-          } else if (data.non_field_errors) {
-            throw new Error(data.non_field_errors[0]);
-          } else {
-            throw new Error('Invalid credentials');
-          }
-        }
-
+        console.log('Login successful:', response.data);
+        
         // Store the tokens in localStorage
-        localStorage.setItem('access_token', data.access);
-        localStorage.setItem('refresh_token', data.refresh);
+        if (response.data.tokens) {
+          localStorage.setItem('access_token', response.data.tokens.access);
+          localStorage.setItem('refresh_token', response.data.tokens.refresh);
+        }
 
         toast({
           title: 'Login successful!',
@@ -264,11 +225,11 @@ const Auth = () => {
           isClosable: true,
         });
         navigate('/');
-      } catch (error) {
+      } catch (error: any) {
         console.error('Login error:', error);
         toast({
           title: 'Login failed',
-          description: error instanceof Error ? error.message : 'Please try again later',
+          description: error.response?.data?.detail || error.message || 'Please check your credentials',
           status: 'error',
           duration: 3000,
           isClosable: true,

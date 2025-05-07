@@ -63,6 +63,33 @@ import './AdminDashboard.css';
 import ProductImage from '../components/ProductImage';
 import { productAPI } from '../services/api';
 
+interface ProductData {
+  id?: number;
+  price: number;
+  stock: number;
+  name: string;
+  brand: string;
+  category: string;
+  description: string;
+  image: string | File;
+  suitable_for: string;
+  targets: string;
+  when_to_apply: string;
+}
+
+interface FormData {
+  price: string;
+  stock: string;
+  name: string;
+  brand: string;
+  category: string;
+  description: string;
+  image: File | string;
+  suitable_for: string;
+  targets: string;
+  when_to_apply: string;
+}
+
 // Initial empty products array (will be populated from API)
 const initialProducts: any[] = [];
 
@@ -203,15 +230,23 @@ const AdminDashboard = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
   
-  const updateProduct = async (productData: any) => {
+  const handleUpdateProduct = async (productId: string | number) => {
     try {
-      console.log('Updating product:', productData);
-      
-      // Ensure ID is a string
-      const productId = String(productData.id);
-      delete productData.id; // Remove id from the payload
-      
-      const response = await productAPI.updateProduct(productId, productData);
+      setIsLoading(true);
+      const productData: ProductData = {
+        price: Number(formData.price),
+        stock: Number(formData.stock),
+        name: formData.name,
+        brand: formData.brand,
+        category: formData.category,
+        description: formData.description,
+        image: formData.image,
+        suitable_for: formData.suitable_for,
+        targets: formData.targets,
+        when_to_apply: formData.when_to_apply,
+      };
+
+      const response = await productAPI.updateProduct(Number(productId), productData);
       console.log('Product updated successfully:', response.data);
       return response.data;
     } catch (error: any) {
@@ -230,10 +265,9 @@ const AdminDashboard = () => {
     }
   };
   
-  const updateProductImageInBackend = async (productId: string, imageFile: File) => {
+  const handleUpdateProductImage = async (productId: string | number, imageFile: File) => {
     try {
-      console.log('Updating product image in backend for product ID:', productId);
-      const response = await productAPI.updateProductImage(productId, imageFile);
+      const response = await productAPI.updateProductImage(Number(productId), imageFile);
       console.log('Product image updated successfully:', response.data);
       return response.data;
     } catch (error) {
@@ -259,7 +293,7 @@ const AdminDashboard = () => {
       // If we're editing an existing product, update the image immediately
       if (selectedProduct?.id) {
         try {
-          await updateProductImageInBackend(selectedProduct.id, file);
+          await handleUpdateProductImage(selectedProduct.id, file);
           toast({
             title: "Image updated successfully",
             status: "success",
@@ -364,40 +398,31 @@ const AdminDashboard = () => {
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    
+    setIsLoading(true);
+
     try {
-      // Validate form data
-      if (!formData.name || !formData.brand || !formData.category || !formData.description || !formData.price || !formData.stock) {
-        toast({
-          title: "Missing required fields",
-          description: "Please fill in all required fields",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-        setIsSubmitting(false);
-        return;
-      }
-      
-      // Convert price and stock to numbers
-      const productData = {
-        ...formData,
-        price: parseFloat(formData.price),
-        stock: parseInt(formData.stock),
-      };
-      
       let updatedProduct;
-      
+      const productData: ProductData = {
+        price: Number(formData.price),
+        stock: Number(formData.stock),
+        name: formData.name,
+        brand: formData.brand,
+        category: formData.category,
+        description: formData.description,
+        image: formData.image,
+        suitable_for: formData.suitable_for,
+        targets: formData.targets,
+        when_to_apply: formData.when_to_apply,
+      };
+
       if (selectedProduct) {
         // Update existing product
-        productData.id = selectedProduct.id;
-        updatedProduct = await updateProduct(productData);
+        updatedProduct = await handleUpdateProduct(selectedProduct.id);
         
         // Update image if it has changed and is a File object
-        if (formData.image && formData.image instanceof File) {
+        if (formData.image instanceof File) {
           try {
-            await updateProductImageInBackend(updatedProduct.id, formData.image);
+            await handleUpdateProductImage(selectedProduct.id, formData.image);
             toast({
               title: "Product updated successfully",
               status: "success",
@@ -407,29 +432,21 @@ const AdminDashboard = () => {
           } catch (error) {
             console.error('Error updating product image:', error);
             toast({
-              title: "Product saved but image update failed",
-              description: error instanceof Error ? error.message : "Please try updating the image again",
-              status: "warning",
-              duration: 5000,
+              title: "Error updating product image",
+              status: "error",
+              duration: 3000,
               isClosable: true,
             });
           }
-        } else {
-          toast({
-            title: "Product updated successfully",
-            status: "success",
-            duration: 3000,
-            isClosable: true,
-          });
         }
       } else {
-        // Add new product
+        // Create new product
         updatedProduct = await addProduct(productData);
         
-        // Update image for new product if it's a File object
-        if (formData.image && formData.image instanceof File) {
+        // Upload image if it's a File object
+        if (formData.image instanceof File) {
           try {
-            await updateProductImageInBackend(updatedProduct.id, formData.image);
+            await handleUpdateProductImage(updatedProduct.id, formData.image);
             toast({
               title: "Product added successfully",
               status: "success",
@@ -437,42 +454,43 @@ const AdminDashboard = () => {
               isClosable: true,
             });
           } catch (error) {
-            console.error('Error updating product image:', error);
+            console.error('Error uploading product image:', error);
             toast({
-              title: "Product saved but image update failed",
-              description: error instanceof Error ? error.message : "Please try updating the image again",
-              status: "warning",
-              duration: 5000,
+              title: "Error uploading product image",
+              status: "error",
+              duration: 3000,
               isClosable: true,
             });
           }
-        } else {
-          toast({
-            title: "Product added successfully",
-            status: "success",
-            duration: 3000,
-            isClosable: true,
-          });
         }
       }
-      
-      // Refresh products list
+
+      // Reset form and refresh products
+      setFormData({
+        price: '',
+        stock: '',
+        name: '',
+        brand: '',
+        category: '',
+        description: '',
+        image: '',
+        suitable_for: '',
+        targets: '',
+        when_to_apply: '',
+      });
+      setSelectedProduct(null);
       fetchProducts();
-      
-      // Close modal and reset form
-      onClose();
-      resetForm();
     } catch (error) {
-      console.error('Error saving product:', error);
+      console.error('Error submitting form:', error);
       toast({
         title: "Error saving product",
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        description: "Please try again",
         status: "error",
-        duration: 5000,
+        duration: 3000,
         isClosable: true,
       });
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
   

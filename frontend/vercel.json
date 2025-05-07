@@ -27,5 +27,9 @@
         }
       ]
     }
-  ]
+  ],
+  "env": {
+    "VITE_API_URL": "https://ai-skin-analyzer-nw9c.onrender.com"
+  },
+  "public": true
 } 

@@ -81,7 +81,9 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://localhost:5173',
     'https://ai-skin-analyzer-nw9c.onrender.com',
-    'https://*.onrender.com'
+    'https://*.onrender.com',
+    'https://frontend-2wmhq4k4i-kelvins-projects-d7489381.vercel.app',
+    'https://*.vercel.app'
 ]
 
 # Additional CORS settings for better security

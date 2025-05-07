@@ -1,11 +1,16 @@
 import axios from 'axios';
 
+const API_URL = import.meta.env.VITE_API_URL || 'https://ai-skin-analyzer-nw9c.onrender.com';
+
 // Create an axios instance with default config
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
+  withCredentials: true, // Changed to true for CORS
+  timeout: 10000,
 });
 
 // Create a separate axios instance for the AI model
@@ -27,18 +32,26 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
 
-// Add response interceptor to handle token refresh
+// Add response interceptor to handle token refresh and errors
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    console.error('API Error:', error.response?.data || error.message);
+    
+    if (!error.response) {
+      // Network error or server not responding
+      throw new Error('Network error. Please check your internet connection.');
+    }
+
     const originalRequest = error.config;
 
     // If the error is 401 and we haven't tried to refresh the token yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
@@ -47,7 +60,7 @@ api.interceptors.response.use(
           throw new Error('No refresh token available');
         }
 
-        const response = await axios.post('http://localhost:8000/api/token/refresh/', {
+        const response = await axios.post(`${API_URL}/api/users/token/refresh/`, {
           refresh: refreshToken
         });
 
@@ -58,12 +71,23 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${access}`;
         return api(originalRequest);
       } catch (refreshError) {
-        // If refresh fails, clear tokens and redirect to login
+        // If refresh token fails, redirect to login
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
-        window.location.href = '/admin/login';
+        window.location.href = '/login';
         return Promise.reject(refreshError);
       }
+    }
+
+    // Handle specific error cases
+    if (error.response.status === 400) {
+      throw new Error(error.response.data.message || 'Invalid request');
+    } else if (error.response.status === 403) {
+      throw new Error('Access denied');
+    } else if (error.response.status === 404) {
+      throw new Error('Resource not found');
+    } else if (error.response.status >= 500) {
+      throw new Error('Server error. Please try again later.');
     }
 
     return Promise.reject(error);
@@ -72,14 +96,48 @@ api.interceptors.response.use(
 
 // Auth API
 export const authAPI = {
-  login: (credentials: { email: string; password: string }) =>
-    api.post('/token/', credentials),
+  login: async (credentials: { email: string; password: string }) => {
+    try {
+      console.log('Attempting login with:', { email: credentials.email });
+      const response = await api.post('/api/users/login/', credentials);
+      console.log('Login response:', response.data);
+      
+      if (response.data.access) {
+        localStorage.setItem('access_token', response.data.access);
+      }
+      if (response.data.refresh) {
+        localStorage.setItem('refresh_token', response.data.refresh);
+      }
+      return response;
+    } catch (error) {
+      console.error('Login error:', error.response?.data || error.message);
+      throw error;
+    }
+  },
   
-  register: (userData: any) =>
-    api.post('/users/', userData),
+  register: async (userData: any) => {
+    try {
+      console.log('Attempting registration with:', { email: userData.email });
+      const response = await api.post('/api/users/register/', userData);
+      console.log('Registration response:', response.data);
+      return response;
+    } catch (error) {
+      console.error('Registration error:', error.response?.data || error.message);
+      throw error;
+    }
+  },
   
-  refreshToken: (refresh: string) =>
-    api.post('/token/refresh/', { refresh }),
+  verifyEmail: async (data: { uid: string; token: string }) => {
+    try {
+      console.log('Attempting email verification');
+      const response = await api.post('/api/users/verify-email/', data);
+      console.log('Email verification response:', response.data);
+      return response;
+    } catch (error) {
+      console.error('Email verification error:', error.response?.data || error.message);
+      throw error;
+    }
+  },
 };
 
 // Image API
@@ -185,32 +243,25 @@ export const imageAPI = {
 
 // Product API
 export const productAPI = {
-  getAllProducts: () => 
-    api.get('/products/'),
+  getProducts: () =>
+    api.get('/api/products/'),
   
-  getProductById: (productId: number) => 
-    api.get(`/products/${productId}/`),
+  getProduct: (id: number) =>
+    api.get(`/api/products/${id}/`),
     
-  updateProduct: (productId: number, data: any) => {
-    // Create a copy of the data to avoid modifying the original
-    const updateData = { ...data };
+  createProduct: (productData: any) =>
+    api.post('/api/products/add/', productData),
     
-    // Remove image if it's not a File object
-    if (updateData.image && !(updateData.image instanceof File)) {
-      delete updateData.image;
-    }
+  updateProduct: (id: number, productData: any) =>
+    api.put(`/api/products/${id}/`, productData),
     
-    return api.patch(`/products/${productId}/`, updateData, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-  },
+  deleteProduct: (id: number) =>
+    api.delete(`/api/products/${id}/`),
     
-  updateProductImage: (productId: number, imageFile: File) => {
+  updateProductImage: (id: number, imageFile: File) => {
     const formData = new FormData();
     formData.append('image', imageFile);
-    return api.post(`/products/${productId}/update_image/`, formData, {
+    return api.patch(`/api/products/${id}/image/`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
