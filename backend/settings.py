@@ -168,6 +168,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174",
     "http://127.0.0.1:5175",
+    "https://frontend-2wmhq4k4i-kelvins-projects-d7489381.vercel.app",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
