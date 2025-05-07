@@ -66,4 +66,8 @@ yarn-error.log*
 # Testing
 .coverage
 htmlcov/
-.pytest_cache/ 
+.pytest_cache/
+
+# Model files
+skincondition_detection-main/saved_vit_model/model.safetensors
+*.safetensors 
