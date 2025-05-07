@@ -217,3 +217,10 @@ CORS_ORIGIN_WHITELIST = [
     "http://localhost:5174",
     "http://localhost:5175",
 ]
+
+# Add CORS_ALLOW_ALL_ORIGINS for development
+CORS_ALLOW_ALL_ORIGINS = True  # Only for development
+CORS_ALLOW_CREDENTIALS = True
+
+# Add CORS_REPLACE_HTTPS_REFERER for development
+CORS_REPLACE_HTTPS_REFERER = True
