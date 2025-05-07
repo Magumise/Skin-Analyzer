@@ -163,12 +163,9 @@ SIMPLE_JWT = {
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-    "http://localhost:5174",
-    "http://localhost:5175",
     "http://127.0.0.1:5173",
-    "http://127.0.0.1:5174",
-    "http://127.0.0.1:5175",
-    "https://frontend-2wmhq4k4i-kelvins-projects-d7489381.vercel.app",
+    "https://ai-skin-analyzer.vercel.app",
+    "https://frontend-yymdm286x-kelvins-projects-d7489381.vercel.app"
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -192,10 +189,6 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
-    'access-control-allow-origin',
-    'access-control-allow-headers',
-    'access-control-allow-methods',
-    'access-control-allow-credentials',
 ]
 
 CORS_EXPOSE_HEADERS = [

@@ -114,121 +114,65 @@ class UploadedImageViewSet(viewsets.ModelViewSet):
         image = self.get_object()
         
         try:
-            # Open the image file in binary mode
-            with open(image.image.path, 'rb') as image_file:
-                files = {'file': image_file}
+            # Get analysis results from request data
+            analysis_data = request.data
+            
+            # Validate required fields
+            required_fields = ['condition', 'confidence', 'recommendation_type']
+            for field in required_fields:
+                if field not in analysis_data:
+                    raise ValueError(f"Missing required field: {field}")
+            
+            # Create analysis result
+            analysis = AnalysisResult.objects.create(
+                image=image,
+                user=request.user,
+                condition=analysis_data['condition'],
+                confidence=analysis_data['confidence'],
+                recommendation_type=analysis_data['recommendation_type'],
+                message=analysis_data.get('message', '')
+            )
+            
+            # If products are recommended, fetch them from our database
+            if 'recommendations' in analysis_data:
+                # Extract product names from recommendations
+                product_names = [r.get('Product', '') for r in analysis_data['recommendations']]
+                # Filter out empty strings
+                product_names = [name for name in product_names if name]
                 
-                # Log the request
-                print(f"Sending image {image.id} to AI model for analysis")
-                
-                # Call the AI endpoint with increased timeout
-                try:
-                    response = requests.post(
-                        'https://us-central1-aurora-457407.cloudfunctions.net/predict',
-                        files=files,
-                        timeout=120  # Increased timeout to 120 seconds
-                    )
-                except requests.exceptions.Timeout:
-                    print(f"Timeout error for image {image.id}")
-                    return Response(
-                        {'error': 'AI model request timed out. The image analysis is taking longer than expected. Please try again with a smaller image or try again later.'},
-                        status=status.HTTP_504_GATEWAY_TIMEOUT
-                    )
-                except requests.exceptions.ConnectionError:
-                    print(f"Connection error for image {image.id}")
-                    return Response(
-                        {'error': 'Could not connect to AI model. Please check your internet connection and try again.'},
-                        status=status.HTTP_503_SERVICE_UNAVAILABLE
-                    )
-                except Exception as e:
-                    print(f"Unexpected error for image {image.id}: {str(e)}")
-                    return Response(
-                        {'error': 'An unexpected error occurred. Please try again.'},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                    )
-                
-                # Log the response
-                print(f"AI model response status: {response.status_code}")
-                print(f"AI model response: {response.text}")
-                
-                if response.status_code == 200:
-                    try:
-                        ai_response = response.json()
-                        
-                        # Validate required fields
-                        required_fields = ['condition', 'confidence', 'recommendation_type']
-                        for field in required_fields:
-                            if field not in ai_response:
-                                raise ValueError(f"Missing required field: {field}")
-                        
-                        # Create analysis result
-                        analysis = AnalysisResult.objects.create(
-                            image=image,
-                            user=request.user,
-                            condition=ai_response['condition'],
-                            confidence=ai_response['confidence'],
-                            recommendation_type=ai_response['recommendation_type'],
-                            message=ai_response.get('message', '')
-                        )
-                        
-                        # If products are recommended, fetch them from our database
-                        if 'recommendations' in ai_response:
-                            # Extract product names from recommendations
-                            product_names = [r.get('Product', '') for r in ai_response['recommendations']]
-                            # Filter out empty strings
-                            product_names = [name for name in product_names if name]
-                            
-                            if product_names:
-                                # Get products from database that match the recommended names
-                                products = Product.objects.filter(name__in=product_names)
-                                
-                                # Get the condition from the AI response
-                                condition = ai_response['condition'].lower()
-                                
-                                # Filter products based on the condition
-                                filtered_products = []
-                                for product in products:
-                                    # Check if the product's targets or suitable_for contains the condition
-                                    if (condition in product.targets.lower() or 
-                                        condition in product.suitable_for.lower()):
-                                        filtered_products.append(product)
-                                
-                                # Serialize the filtered products
-                                product_data = ProductSerializer(filtered_products, many=True, context={'request': request}).data
-                                
-                                # Include only the filtered products in the response
-                                ai_response['products'] = product_data
-                                # Remove the original recommendations since we're using our database products
-                                ai_response.pop('recommendations', None)
-                        
-                        return Response(ai_response)
-                    except ValueError as ve:
-                        print(f"Validation error: {str(ve)}")
-                        return Response(
-                            {'error': str(ve)},
-                            status=status.HTTP_400_BAD_REQUEST
-                        )
-                    except Exception as e:
-                        print(f"Error processing AI response: {str(e)}")
-                        return Response(
-                            {'error': 'Error processing AI response'},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                        )
-                else:
-                    print(f"AI service error: {response.text}")
-                    return Response(
-                        {'error': 'AI service unavailable'},
-                        status=status.HTTP_503_SERVICE_UNAVAILABLE
-                    )
+                if product_names:
+                    # Get products from database that match the recommended names
+                    products = Product.objects.filter(name__in=product_names)
                     
-        except FileNotFoundError:
-            print(f"Image file not found: {image.image.path}")
+                    # Get the condition from the AI response
+                    condition = analysis_data['condition'].lower()
+                    
+                    # Filter products based on the condition
+                    filtered_products = []
+                    for product in products:
+                        # Check if the product's targets or suitable_for contains the condition
+                        if (condition in product.targets.lower() or 
+                            condition in product.suitable_for.lower()):
+                            filtered_products.append(product)
+                    
+                    # Serialize the filtered products
+                    product_data = ProductSerializer(filtered_products, many=True, context={'request': request}).data
+                    
+                    # Include only the filtered products in the response
+                    analysis_data['products'] = product_data
+                    # Remove the original recommendations since we're using our database products
+                    analysis_data.pop('recommendations', None)
+            
+            return Response(analysis_data)
+            
+        except ValueError as ve:
+            print(f"Validation error: {str(ve)}")
             return Response(
-                {'error': 'Image file not found'},
-                status=status.HTTP_404_NOT_FOUND
+                {'error': str(ve)},
+                status=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
-            print(f"Error analyzing image: {str(e)}")
+            print(f"Error processing analysis: {str(e)}")
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
