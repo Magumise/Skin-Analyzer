@@ -1,1 +1,2 @@
-requests>=2.31.0 
+# Remove the requests package since we're using the cloud function API
+# requests>=2.31.0 
