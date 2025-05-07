@@ -2,14 +2,15 @@ services:
   - type: web
     name: ai-skin-analyzer-backend
     env: python
+    runtime: python3.11
     buildCommand: |
       cd aurora-main-backend
-      python -m pip install --upgrade pip
-      pip install -r requirements.txt
-      python manage.py makemigrations
-      python manage.py migrate
-      python manage.py collectstatic --noinput
-    startCommand: cd aurora-main-backend && gunicorn aurora_skin_analyzer.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120
+      python3 -m pip install --upgrade pip
+      python3 -m pip install -r requirements.txt
+      python3 manage.py makemigrations
+      python3 manage.py migrate
+      python3 manage.py collectstatic --noinput
+    startCommand: cd aurora-main-backend && python3 -m gunicorn aurora_skin_analyzer.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120
     envVars:
       - key: DATABASE_PASSWORD
         value: Dante@2025

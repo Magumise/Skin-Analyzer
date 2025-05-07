@@ -1,1 +1,1 @@
-web: cd aurora-main-backend && gunicorn aurora_skin_analyzer.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120 --log-level info 
+web: cd aurora-main-backend && python3 -m gunicorn aurora_skin_analyzer.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120 --log-level info 
