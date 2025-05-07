@@ -10,7 +10,7 @@ const api = axios.create({
     'Accept': 'application/json',
   },
   withCredentials: true,
-  timeout: 10000,
+  timeout: 30000, // Increased timeout to 30 seconds
 });
 
 // Create a separate axios instance for the AI model
@@ -20,6 +20,7 @@ const aiModelApi = axios.create({
     'Accept': 'application/json',
   },
   withCredentials: false,
+  timeout: 120000, // 120 seconds timeout for AI model
 });
 
 // Add request interceptor to add token to requests
@@ -45,6 +46,9 @@ api.interceptors.response.use(
     
     if (!error.response) {
       // Network error or server not responding
+      if (error.code === 'ECONNABORTED') {
+        throw new Error('Request timed out. Please try again.');
+      }
       throw new Error('Network error. Please check your internet connection.');
     }
 
