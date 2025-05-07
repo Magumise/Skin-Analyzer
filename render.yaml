@@ -10,7 +10,10 @@ services:
       python3 manage.py makemigrations
       python3 manage.py migrate
       python3 manage.py collectstatic --noinput
-    startCommand: cd aurora-main-backend && gunicorn aurora_skin_analyzer.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120
+    startCommand: |
+      cd aurora-main-backend
+      export PYTHONPATH=$PYTHONPATH:$(pwd)
+      gunicorn aurora_skin_analyzer.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120
     envVars:
       - key: DATABASE_URL
         value: postgres://postgres.ysezicwpvxpyoinljhaf:Dante@2025@aws-0-us-east-2.pooler.supabase.com:5432/postgres?sslmode=require
@@ -23,15 +26,15 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: PYTHONPATH
-        value: /opt/render/project/src
+        value: /opt/render/project/src/aurora-main-backend
       - key: DJANGO_SETTINGS_MODULE
         value: aurora_skin_analyzer.settings
       - key: STATIC_ROOT
-        value: /opt/render/project/src/staticfiles
+        value: /opt/render/project/src/aurora-main-backend/staticfiles
       - key: STATIC_URL
         value: /static/
       - key: MEDIA_ROOT
-        value: /opt/render/project/src/media
+        value: /opt/render/project/src/aurora-main-backend/media
       - key: MEDIA_URL
         value: /media/
       - key: AI_SERVICE_URL
