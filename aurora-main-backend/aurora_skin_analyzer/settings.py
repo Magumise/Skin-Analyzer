@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 from datetime import timedelta
 from dotenv import load_dotenv
+import dj_database_url
 
 # Load environment variables
 load_dotenv()
@@ -143,17 +144,11 @@ WSGI_APPLICATION = 'aurora_skin_analyzer.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'postgres'),
-        'USER': os.getenv('DB_USER', 'postgres'),
-        'PASSWORD': os.getenv('DB_PASSWORD', ''),
-        'HOST': os.getenv('DB_HOST', ''),
-        'PORT': os.getenv('DB_PORT', '5432'),
-        'OPTIONS': {
-            'sslmode': 'require',
-        },
-    }
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 

@@ -4,18 +4,16 @@ services:
     env: python
     runtime: python3.11
     buildCommand: |
-      cd aurora-main-backend
       python3 -m pip install --upgrade pip
       python3 -m pip install -r requirements.txt
+      cd aurora-main-backend
       python3 manage.py makemigrations
       python3 manage.py migrate
       python3 manage.py collectstatic --noinput
-    startCommand: cd aurora-main-backend && python3 -m gunicorn aurora_skin_analyzer.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120
+    startCommand: cd aurora-main-backend && gunicorn aurora_skin_analyzer.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120
     envVars:
-      - key: DATABASE_PASSWORD
-        value: Dante@2025
-      - key: DATABASE_HOST
-        value: db.ysezicwpvxpyoinljhaf.supabase.co
+      - key: DATABASE_URL
+        value: postgresql://postgres:Dante@2025@db.ysezicwpvxpyoinljhaf.supabase.co:5432/postgres
       - key: DEBUG
         value: false
       - key: ALLOWED_HOSTS
@@ -28,6 +26,10 @@ services:
         value: /opt/render/project/src
       - key: DJANGO_SETTINGS_MODULE
         value: aurora_skin_analyzer.settings
+      - key: STATIC_ROOT
+        value: /opt/render/project/src/staticfiles
+      - key: STATIC_URL
+        value: /static/
 
 databases:
   - name: ai-skin-analyzer-db
