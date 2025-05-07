@@ -195,6 +195,7 @@ CORS_ALLOW_HEADERS = [
     'access-control-allow-origin',
     'access-control-allow-headers',
     'access-control-allow-methods',
+    'access-control-allow-credentials',
 ]
 
 CORS_EXPOSE_HEADERS = [
@@ -203,6 +204,7 @@ CORS_EXPOSE_HEADERS = [
     'access-control-allow-origin',
     'access-control-allow-headers',
     'access-control-allow-methods',
+    'access-control-allow-credentials',
 ]
 
 CORS_PREFLIGHT_MAX_AGE = 86400
