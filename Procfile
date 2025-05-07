@@ -1,0 +1,1 @@
+web: gunicorn aurora_skin_analyzer.wsgi:application 

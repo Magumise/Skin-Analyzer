@@ -1,0 +1,138 @@
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-header {
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.main-content {
+  flex: 1;
+  background-color: #f8f9fa;
+  margin-top: 50px;
+}
+
+/* Card styling */
+.card {
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  background-color: #fff5f5;
+  padding: 1.5rem;
+  border-bottom: 1px solid #fed7d7;
+}
+
+.card-body {
+  padding: 2rem;
+}
+
+/* Table styling */
+.table-container {
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background-color: #f7fafc;
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #4a5568;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+td {
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+tr:hover {
+  background-color: #f7fafc;
+}
+
+/* Button styling */
+button {
+  transition: all 0.2s;
+}
+
+button:hover {
+  transform: translateY(-2px);
+}
+
+/* Badge styling */
+.badge {
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+}
+
+/* Alert styling */
+.alert {
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.alert-info {
+  background-color: #ebf8ff;
+  border: 1px solid #bee3f8;
+  color: #2c5282;
+}
+
+.alert-warning {
+  background-color: #fffaf0;
+  border: 1px solid #feebc8;
+  color: #975a16;
+}
+
+.alert-success {
+  background-color: #f0fff4;
+  border: 1px solid #c6f6d5;
+  color: #2f855a;
+}
+
+.alert-error {
+  background-color: #fff5f5;
+  border: 1px solid #fed7d7;
+  color: #c53030;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .card-body {
+    padding: 1.5rem;
+  }
+  
+  .heading {
+    font-size: 1.5rem;
+  }
+  
+  .text {
+    font-size: 1rem;
+  }
+  
+  th, td {
+    padding: 0.75rem;
+  }
+} 

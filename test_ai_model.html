@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Skin Model Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .upload-section {
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .preview-section {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .preview-image {
+            max-width: 300px;
+            max-height: 300px;
+            margin: 10px 0;
+        }
+        .result-section {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        .loading {
+            display: none;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .error {
+            color: red;
+            margin: 10px 0;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI Skin Model Test</h1>
+        
+        <div class="upload-section">
+            <h2>Upload Image</h2>
+            <input type="file" id="imageInput" accept="image/*" style="display: none;">
+            <button onclick="document.getElementById('imageInput').click()">Choose Image</button>
+            <p>or drag and drop an image here</p>
+        </div>
+
+        <div class="preview-section">
+            <img id="preview" class="preview-image" style="display: none;">
+        </div>
+
+        <div class="loading" id="loading">
+            Analyzing image... Please wait...
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="result-section">
+            <h2>Analysis Result</h2>
+            <pre id="result">No result yet</pre>
+        </div>
+    </div>
+
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const preview = document.getElementById('preview');
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const result = document.getElementById('result');
+        const uploadSection = document.querySelector('.upload-section');
+
+        // Handle file selection
+        imageInput.addEventListener('change', handleFileSelect);
+
+        // Handle drag and drop
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.style.borderColor = '#007bff';
+        });
+
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.style.borderColor = '#ccc';
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.style.borderColor = '#ccc';
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleFile(file);
+            }
+        });
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+
+            // Analyze image
+            analyzeImage(file);
+        }
+
+        async function analyzeImage(file) {
+            loading.style.display = 'block';
+            error.textContent = '';
+            result.textContent = 'Analyzing...';
+
+            try {
+                // Create FormData
+                const formData = new FormData();
+                formData.append('file', file);
+
+                console.log('Sending image to server...');
+                
+                // Send the request to our local server
+                const response = await fetch('http://localhost:5000/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Server response:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                }
+
+                const data = await response.json();
+                console.log('Received response:', data);
+                
+                // Format the result for better display
+                const formattedResult = {
+                    condition: data.condition,
+                    confidence: (data.confidence * 100).toFixed(2) + '%',
+                    alternative_predictions: data.alternative_predictions?.map(pred => ({
+                        condition: pred.condition,
+                        confidence: (pred.confidence * 100).toFixed(2) + '%'
+                    })),
+                    recommendation_type: data.recommendation_type,
+                    message: data.message
+                };
+                
+                result.textContent = JSON.stringify(formattedResult, null, 2);
+            } catch (err) {
+                console.error('Full error:', err);
+                error.textContent = `Error: ${err.message}. Please check the console for more details.`;
+                result.textContent = 'Analysis failed';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html> 

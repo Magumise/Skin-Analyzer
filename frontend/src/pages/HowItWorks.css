@@ -1,0 +1,127 @@
+.app-container {
+  min-height: 100vh;
+  background-color: #f7f7f7;
+}
+
+.nav-header {
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.main-content {
+  padding: 2rem 0;
+}
+
+/* Step card styling */
+.step-card {
+  transition: transform 0.3s ease;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.step-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Step number styling */
+.step-number {
+  background-color: #E53E3E;
+  color: white;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+/* Icon styling */
+.icon {
+  color: #E53E3E;
+  transition: transform 0.3s ease;
+}
+
+.icon:hover {
+  transform: scale(1.1);
+}
+
+/* Button styling */
+button {
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Text styling */
+p {
+  color: #4A5568;
+  line-height: 1.6;
+}
+
+/* Heading styling */
+h1, h2, h3 {
+  color: #2D3748;
+}
+
+.how-it-works-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.step-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.step-icon {
+  font-size: 2rem;
+  color: #4A90E2;
+}
+
+.step-content {
+  flex: 1;
+}
+
+.step-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #2D3748;
+}
+
+.step-description {
+  color: #4A5568;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .step {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .step-icon {
+    margin-bottom: 1rem;
+  }
+} 

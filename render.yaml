@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: ai-skin-analyzer-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn aurora_skin_analyzer.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.0
+      - key: DEBUG
+        value: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: WEB_CONCURRENCY
+        value: 4
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ai-skin-analyzer-db
+          property: connectionString
+
+databases:
+  - name: ai-skin-analyzer-db
+    databaseName: ai_skin_analyzer
+    user: ai_skin_analyzer_user
+    plan: free 

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Skin Condition Analyzer Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        #preview {
+            max-width: 300px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Skin Condition Analyzer Test</h1>
+    
+    <div>
+        <input type="file" id="imageInput" accept="image/*">
+        <button onclick="analyzeImage()">Analyze</button>
+    </div>
+    
+    <img id="preview">
+    
+    <div id="result" class="result"></div>
+
+    <script>
+        function analyzeImage() {
+            const input = document.getElementById('imageInput');
+            const preview = document.getElementById('preview');
+            const result = document.getElementById('result');
+            
+            if (!input.files || !input.files[0]) {
+                alert('Please select an image first');
+                return;
+            }
+
+            // Show preview
+            const file = input.files[0];
+            preview.src = URL.createObjectURL(file);
+
+            // Create form data
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Send to API
+            fetch('http://localhost:5000/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Server responded with status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Display results
+                let html = `
+                    <h3>Results:</h3>
+                    <p>Condition: ${data.condition}</p>
+                    <p>Confidence: ${(data.confidence * 100).toFixed(2)}%</p>
+                `;
+
+                if (data.message) {
+                    html += `<p>Message: ${data.message}</p>`;
+                }
+
+                if (data.recommendations && data.recommendations.length > 0) {
+                    html += `
+                        <h4>Recommended Products:</h4>
+                        <ul>
+                    `;
+                    data.recommendations.forEach(rec => {
+                        html += `<li>${rec.product} by ${rec.brand} (${rec.category})</li>`;
+                    });
+                    html += '</ul>';
+                }
+
+                result.innerHTML = html;
+            })
+            .catch(error => {
+                result.innerHTML = `<p style="color: red">Error: ${error.message}</p>`;
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html> 
