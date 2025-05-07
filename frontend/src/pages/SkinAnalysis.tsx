@@ -265,46 +265,68 @@ const SkinAnalysis = () => {
     setError(null);
     
     try {
-      // First, upload the image to our backend
+      // First, analyze with AI model directly
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('file', file);
       
-      // Get the auth token
-      const token = localStorage.getItem('access_token');
-      
-      // Upload the image
-      const uploadResponse = await axios.post(
-        'http://127.0.0.1:8000/api/images/',
+      console.log('Sending image to AI model...');
+      const aiResponse = await axios.post(
+        'https://us-central1-aurora-457407.cloudfunctions.net/predict',
         formData,
         {
           headers: {
             'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${token}`
-          },
-        }
-      );
-      
-      console.log('Image uploaded successfully:', uploadResponse.data);
-      
-      // Then analyze the uploaded image
-      const imageId = uploadResponse.data.id;
-      const analyzeResponse = await axios.post(
-        `http://127.0.0.1:8000/api/images/${imageId}/analyze/`,
-        {},
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
           },
           timeout: 120000 // 120 seconds timeout
         }
       );
       
-      console.log('Analysis response:', analyzeResponse.data);
+      console.log('AI model response:', aiResponse.data);
+      
+      // If we have a token, save the results to backend
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        try {
+          // Upload image to backend
+          const uploadFormData = new FormData();
+          uploadFormData.append('image', file);
+          
+          const uploadResponse = await axios.post(
+            `${API_URL}/api/images/`,
+            uploadFormData,
+            {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+                'Authorization': `Bearer ${token}`
+              },
+            }
+          );
+          
+          console.log('Image uploaded to backend:', uploadResponse.data);
+          
+          // Save analysis results
+          const imageId = uploadResponse.data.id;
+          await axios.post(
+            `${API_URL}/api/images/${imageId}/analyze/`,
+            aiResponse.data,
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            }
+          );
+          
+          console.log('Analysis results saved to backend');
+        } catch (error) {
+          console.error('Error saving to backend:', error);
+          // Continue even if backend save fails
+        }
+      }
       
       // Navigate to results page with the data
       navigate('/results', { 
         state: { 
-          result: analyzeResponse.data,
+          result: aiResponse.data,
           image: preview
         } 
       });
@@ -312,30 +334,23 @@ const SkinAnalysis = () => {
     } catch (error) {
       console.error('Error analyzing image:', error);
       
-      // Handle specific error cases
-      let errorMessage = 'Failed to analyze image. Please try again.';
-      
+      let errorMessage = 'An unknown error occurred';
       if (axios.isAxiosError(error)) {
-        if (error.code === 'ECONNABORTED') {
-          errorMessage = 'The analysis is taking longer than expected. Please try again with a smaller image or try again later.';
-        } else if (error.response) {
-          // The request was made and the server responded with a status code
-          console.error('Error response:', error.response.data);
-          errorMessage = error.response.data.error || errorMessage;
+        if (error.response) {
+          errorMessage = `Server error: ${error.response.status} - ${error.response.data?.message || 'Unknown error'}`;
         } else if (error.request) {
-          // The request was made but no response was received
-          console.error('No response received:', error.request);
-          errorMessage = 'No response from server. Please check your internet connection and try again.';
+          errorMessage = 'No response received from AI model. Please check your internet connection.';
         } else {
-          // Something happened in setting up the request that triggered an Error
-          console.error('Error setting up request:', error.message);
-          errorMessage = error.message;
+          errorMessage = `Request error: ${error.message}`;
         }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
       }
       
       setError(errorMessage);
+      
       toast({
-        title: 'Error',
+        title: 'Analysis failed',
         description: errorMessage,
         status: 'error',
         duration: 5000,

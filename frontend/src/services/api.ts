@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://ai-skin-analyzer-nw9c.onrender.com';
+const API_URL = 'https://ai-skin-analyzer-nw9c.onrender.com';
 
 // Create an axios instance with default config
 const api = axios.create({
@@ -9,7 +9,7 @@ const api = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  withCredentials: true, // Changed to true for CORS
+  withCredentials: true,
   timeout: 10000,
 });
 
