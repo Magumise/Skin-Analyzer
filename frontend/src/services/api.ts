@@ -85,7 +85,8 @@ api.interceptors.response.use(
 
     // Handle specific error cases
     if (error.response.status === 400) {
-      throw new Error(error.response.data.message || 'Invalid request');
+      const message = error.response.data.message || error.response.data.detail || 'Invalid request';
+      throw new Error(message);
     } else if (error.response.status === 403) {
       throw new Error('Access denied');
     } else if (error.response.status === 404) {
@@ -112,7 +113,7 @@ export const authAPI = {
       if (response.data.refresh) {
         localStorage.setItem('refresh_token', response.data.refresh);
       }
-      return response;
+      return response.data;
     } catch (error) {
       console.error('Login error:', error.response?.data || error.message);
       throw error;
@@ -124,21 +125,9 @@ export const authAPI = {
       console.log('Attempting registration with:', { email: userData.email });
       const response = await api.post('/api/users/register/', userData);
       console.log('Registration response:', response.data);
-      return response;
+      return response.data;
     } catch (error) {
       console.error('Registration error:', error.response?.data || error.message);
-      throw error;
-    }
-  },
-  
-  verifyEmail: async (data: { uid: string; token: string }) => {
-    try {
-      console.log('Attempting email verification');
-      const response = await api.post('/api/users/verify-email/', data);
-      console.log('Email verification response:', response.data);
-      return response;
-    } catch (error) {
-      console.error('Email verification error:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -146,15 +135,21 @@ export const authAPI = {
 
 // Image API
 export const imageAPI = {
-  uploadImage: (imageFile: File) => {
-    const formData = new FormData();
-    formData.append('image', imageFile);
-    return api.post('/api/images/upload/', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      timeout: 60000, // 60 seconds timeout for image upload
-    });
+  uploadImage: async (imageFile: File) => {
+    try {
+      const formData = new FormData();
+      formData.append('image', imageFile);
+      const response = await api.post('/api/images/upload/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 60000, // 60 seconds timeout for image upload
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Image upload error:', error.response?.data || error.message);
+      throw error;
+    }
   },
   
   analyzeImage: async (imageFile: File) => {

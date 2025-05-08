@@ -165,7 +165,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://ai-skin-analyzer.vercel.app",
-    "https://frontend-yymdm286x-kelvins-projects-d7489381.vercel.app"
+    "https://frontend-yymdm286x-kelvins-projects-d7489381.vercel.app",
+    "https://frontend-daquwpjfm-kelvins-projects-d7489381.vercel.app"
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -205,15 +206,9 @@ CORS_PREFLIGHT_MAX_AGE = 86400
 # Additional CORS settings
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = [
-    "https://frontend-2wmhq4k4i-kelvins-projects-d7489381.vercel.app",
+    "https://frontend-daquwpjfm-kelvins-projects-d7489381.vercel.app",
+    "https://frontend-yymdm286x-kelvins-projects-d7489381.vercel.app",
     "http://localhost:5173",
     "http://localhost:5174",
     "http://localhost:5175",
 ]
-
-# Add CORS_ALLOW_ALL_ORIGINS for development
-CORS_ALLOW_ALL_ORIGINS = True  # Only for development
-CORS_ALLOW_CREDENTIALS = True
-
-# Add CORS_REPLACE_HTTPS_REFERER for development
-CORS_REPLACE_HTTPS_REFERER = True
