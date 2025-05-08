@@ -10,7 +10,7 @@ const api = axios.create({
     'Accept': 'application/json',
   },
   withCredentials: true,
-  timeout: 30000, // Increased timeout to 30 seconds
+  timeout: 30000, // 30 seconds timeout
 });
 
 // Create a separate axios instance for the AI model
@@ -149,43 +149,21 @@ export const imageAPI = {
   uploadImage: (imageFile: File) => {
     const formData = new FormData();
     formData.append('image', imageFile);
-    return api.post('/analysis/upload/', formData, {
+    return api.post('/api/images/upload/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: 60000, // 60 seconds timeout for image upload
     });
   },
   
-  analyzeImage: (imageId: number) => 
-    api.post(`/analysis/${imageId}/analyze/`),
-    
-  analyzeWithAIModel: async (imageFile: File) => {
+  analyzeImage: async (imageFile: File) => {
     console.log('Analyzing image with cloud AI model:', {
       fileName: imageFile.name,
       fileSize: imageFile.size,
       fileType: imageFile.type
     });
 
-    // Check if user is logged in
-    const token = localStorage.getItem('token');
-    let imageId = null;
-    let imageUrl = null;
-
-    // Only try to upload to backend if user is logged in
-    if (token) {
-      try {
-        // First upload the image to the backend
-        const uploadResponse = await imageAPI.uploadImage(imageFile);
-        imageId = uploadResponse.data.id;
-        imageUrl = uploadResponse.data.image_url;
-        console.log('Image uploaded to backend:', imageId);
-      } catch (error) {
-        console.error('Error uploading image to backend:', error);
-        // Continue with AI analysis even if backend upload fails
-      }
-    }
-
-    // Then analyze with the cloud AI model
     const formData = new FormData();
     formData.append('file', imageFile);
     
@@ -195,49 +173,23 @@ export const imageAPI = {
     
     while (retryCount < maxRetries) {
       try {
-        const response = await axios.post(
-          'https://us-central1-aurora-457407.cloudfunctions.net/predict',
-          formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-            timeout: 60000, // 60 seconds timeout
-          }
-        );
-
-        // Only try to store analysis result if user is logged in and image was uploaded
-        if (token && imageId) {
-          try {
-            // Store the analysis result in the backend
-            const analysisResult = {
-              image_id: imageId,
-              condition: response.data.condition,
-              confidence: response.data.confidence,
-              recommendation_type: response.data.recommendation_type,
-              message: response.data.message,
-            };
-            
-            await api.post('/analysis-results/', analysisResult);
-            console.log('Analysis result stored in backend');
-          } catch (error) {
-            console.error('Error storing analysis result in backend:', error);
-            // Continue even if storing result fails
-          }
-        }
+        const response = await aiModelApi.post('', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          timeout: 120000, // 120 seconds timeout for AI model
+        });
 
         console.log('Cloud AI model response:', response.data);
-        return {
-          ...response.data,
-          image_id: imageId,
-          image_url: imageUrl
-        };
+        return response.data;
       } catch (error) {
         retryCount++;
+        console.error(`Attempt ${retryCount} failed:`, error);
+        
         if (retryCount === maxRetries) {
-          console.error('Error analyzing image with cloud AI model after retries:', error);
           throw new Error('Failed to analyze image after multiple attempts. Please try again later.');
         }
+        
         // Wait before retrying (exponential backoff)
         await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
       }
