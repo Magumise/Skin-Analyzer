@@ -10,7 +10,7 @@ const api = axios.create({
     'Accept': 'application/json',
   },
   withCredentials: true,
-  timeout: 30000, // 30 seconds timeout
+  timeout: 10000, // 10 seconds timeout for regular requests
 });
 
 // Create a separate axios instance for the AI model
@@ -104,7 +104,9 @@ export const authAPI = {
   login: async (credentials: { email: string; password: string }) => {
     try {
       console.log('Attempting login with:', { email: credentials.email });
-      const response = await api.post('/api/users/login/', credentials);
+      const response = await api.post('/api/users/login/', credentials, {
+        timeout: 10000, // 10 seconds timeout for login
+      });
       console.log('Login response:', response.data);
       
       if (response.data.access) {
@@ -123,10 +125,15 @@ export const authAPI = {
   register: async (userData: any) => {
     try {
       console.log('Attempting registration with:', { email: userData.email });
-      const response = await api.post('/api/users/register/', userData);
+      const response = await api.post('/api/users/register/', userData, {
+        timeout: 10000, // 10 seconds timeout for registration
+      });
       console.log('Registration response:', response.data);
       return response.data;
     } catch (error) {
+      if (error.code === 'ECONNABORTED') {
+        throw new Error('Registration request timed out. Please check your internet connection and try again.');
+      }
       console.error('Registration error:', error.response?.data || error.message);
       throw error;
     }

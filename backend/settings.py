@@ -164,6 +164,14 @@ REST_FRAMEWORK = {
     },
     'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
     'UNAUTHENTICATED_USER': None,
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.URLPathVersioning',
+    'DEFAULT_VERSION': 'v1',
+    'ALLOWED_VERSIONS': ['v1'],
+    'VERSION_PARAM': 'version',
+    'DEFAULT_METADATA_CLASS': 'rest_framework.metadata.SimpleMetadata',
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
 }
 
 # JWT settings
@@ -244,6 +252,11 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         'LOCATION': 'unique-snowflake',
+        'TIMEOUT': 300,  # 5 minutes
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,
+            'CULL_FREQUENCY': 3,
+        }
     }
 }
 
@@ -252,11 +265,15 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 SESSION_CACHE_ALIAS = 'default'
 SESSION_COOKIE_AGE = 86400  # 24 hours
 SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
 
 # Security settings
 SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
