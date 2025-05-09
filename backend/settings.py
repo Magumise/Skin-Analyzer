@@ -196,13 +196,8 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://ai-skin-analyzer.vercel.app",
-    "https://frontend-yymdm286x-kelvins-projects-d7489381.vercel.app",
-    "https://frontend-daquwpjfm-kelvins-projects-d7489381.vercel.app",
-    "https://frontend-gftvtru5f-kelvins-projects-d7489381.vercel.app",
-    "https://frontend-2wmhq4k4i-kelvins-projects-d7489381.vercel.app",
-    "https://frontend-nsbzs9b1w-kelvins-projects-d7489381.vercel.app",
-    "https://frontend-ksrsga2le-kelvins-projects-d7489381.vercel.app"
+    "https://frontend-two-mu-37.vercel.app",
+    "https://frontend-git-main-kelvins-projects-61a51e51.vercel.app"
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -242,12 +237,8 @@ CORS_PREFLIGHT_MAX_AGE = 86400
 # Additional CORS settings
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = [
-    "https://frontend-gftvtru5f-kelvins-projects-d7489381.vercel.app",
-    "https://frontend-daquwpjfm-kelvins-projects-d7489381.vercel.app",
-    "https://frontend-yymdm286x-kelvins-projects-d7489381.vercel.app",
-    "https://frontend-2wmhq4k4i-kelvins-projects-d7489381.vercel.app",
-    "https://frontend-nsbzs9b1w-kelvins-projects-d7489381.vercel.app",
-    "https://frontend-ksrsga2le-kelvins-projects-d7489381.vercel.app",
+    "https://frontend-two-mu-37.vercel.app",
+    "https://frontend-git-main-kelvins-projects-61a51e51.vercel.app",
     "http://localhost:5173",
     "http://localhost:5174",
     "http://localhost:5175",
@@ -286,3 +277,9 @@ X_FRAME_OPTIONS = 'DENY'
 SECURE_HSTS_SECONDS = 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
+
+# Additional security headers
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_REFERRER_POLICY = 'same-origin'
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
+SECURE_CROSS_ORIGIN_EMBEDDER_POLICY = 'require-corp'

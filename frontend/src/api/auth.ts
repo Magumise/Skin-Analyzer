@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://ai-skin-analyzer.onrender.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://ai-skin-analyzer-nw9c.onrender.com';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -8,15 +8,17 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
   withCredentials: true,
+  timeout: 30000, // 30 seconds timeout
 });
 
 // Add request interceptor to handle CORS
 api.interceptors.request.use(
   (config) => {
-    // Add CORS headers
-    config.headers['Access-Control-Allow-Origin'] = '*';
-    config.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,PATCH,OPTIONS';
-    config.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization';
+    // Add token if available
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {
@@ -28,6 +30,10 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.code === 'ECONNABORTED') {
+      throw new Error('Request timed out. Please try again.');
+    }
+    
     if (error.response) {
       // The request was made and the server responded with a status code
       // that falls out of the range of 2xx
@@ -51,7 +57,9 @@ export const register = async (userData: {
   password: string;
 }) => {
   try {
-    const response = await api.post('/api/auth/register/', userData);
+    const response = await api.post('/api/auth/register/', userData, {
+      timeout: 30000 // 30 seconds timeout for registration
+    });
     return response.data;
   } catch (error: any) {
     if (error.response?.data?.email) {
@@ -63,7 +71,9 @@ export const register = async (userData: {
 
 export const login = async (credentials: { email: string; password: string }) => {
   try {
-    const response = await api.post('/api/auth/login/', credentials);
+    const response = await api.post('/api/auth/login/', credentials, {
+      timeout: 30000 // 30 seconds timeout for login
+    });
     return response.data;
   } catch (error: any) {
     if (error.response?.status === 401) {
@@ -75,7 +85,9 @@ export const login = async (credentials: { email: string; password: string }) =>
 
 export const logout = async () => {
   try {
-    const response = await api.post('/api/auth/logout/');
+    const response = await api.post('/api/auth/logout/', {}, {
+      timeout: 30000 // 30 seconds timeout for logout
+    });
     return response.data;
   } catch (error) {
     console.error('Logout error:', error);
@@ -85,7 +97,9 @@ export const logout = async () => {
 
 export const getCurrentUser = async () => {
   try {
-    const response = await api.get('/api/auth/user/');
+    const response = await api.get('/api/auth/user/', {
+      timeout: 30000 // 30 seconds timeout for getting user data
+    });
     return response.data;
   } catch (error) {
     console.error('Get current user error:', error);

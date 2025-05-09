@@ -10,7 +10,7 @@ const api = axios.create({
     'Accept': 'application/json',
   },
   withCredentials: true,
-  timeout: 15000, // 15 seconds timeout for regular requests
+  timeout: 30000, // Increased to 30 seconds timeout for regular requests
 });
 
 // Create a separate axios instance for the AI model
@@ -66,6 +66,8 @@ api.interceptors.response.use(
 
         const response = await axios.post(`${API_URL}/auth/token/refresh/`, {
           refresh: refreshToken
+        }, {
+          timeout: 30000 // 30 seconds timeout for token refresh
         });
 
         const { access } = response.data;
@@ -99,11 +101,33 @@ api.interceptors.response.use(
   }
 );
 
+// Add retry logic for failed requests
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+
+const retryRequest = async (config: any, retryCount = 0) => {
+  try {
+    return await api(config);
+  } catch (error: any) {
+    if (retryCount < MAX_RETRIES && (error.code === 'ECONNABORTED' || !error.response)) {
+      // Wait before retrying (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * Math.pow(2, retryCount)));
+      return retryRequest(config, retryCount + 1);
+    }
+    throw error;
+  }
+};
+
 // Auth API
 export const authAPI = {
   login: async (credentials: { email: string; password: string }) => {
     try {
-      const response = await api.post('/api/auth/login/', credentials);
+      const response = await retryRequest({
+        method: 'post',
+        url: '/api/auth/login/',
+        data: credentials,
+        timeout: 30000
+      });
       return response;
     } catch (error: any) {
       if (error.code === 'ECONNABORTED') {
@@ -126,7 +150,12 @@ export const authAPI = {
     skin_concerns?: string[];
   }) => {
     try {
-      const response = await api.post('/api/auth/register/', userData);
+      const response = await retryRequest({
+        method: 'post',
+        url: '/api/auth/register/',
+        data: userData,
+        timeout: 30000
+      });
       return response;
     } catch (error: any) {
       if (error.code === 'ECONNABORTED') {
