@@ -10,7 +10,7 @@ const api = axios.create({
     'Accept': 'application/json',
   },
   withCredentials: true,
-  timeout: 10000, // 10 seconds timeout for regular requests
+  timeout: 15000, // 15 seconds timeout for regular requests
 });
 
 // Create a separate axios instance for the AI model
@@ -64,7 +64,7 @@ api.interceptors.response.use(
           throw new Error('No refresh token available');
         }
 
-        const response = await axios.post(`${API_URL}/api/users/token/refresh/`, {
+        const response = await axios.post(`${API_URL}/auth/token/refresh/`, {
           refresh: refreshToken
         });
 
@@ -103,38 +103,45 @@ api.interceptors.response.use(
 export const authAPI = {
   login: async (credentials: { email: string; password: string }) => {
     try {
-      console.log('Attempting login with:', { email: credentials.email });
-      const response = await api.post('/api/users/login/', credentials, {
-        timeout: 10000, // 10 seconds timeout for login
-      });
-      console.log('Login response:', response.data);
-      
-      if (response.data.access) {
-        localStorage.setItem('access_token', response.data.access);
+      const response = await api.post('/auth/login/', credentials);
+      return response;
+    } catch (error: any) {
+      if (error.code === 'ECONNABORTED') {
+        throw new Error('Request timed out. Please try again.');
       }
-      if (response.data.refresh) {
-        localStorage.setItem('refresh_token', response.data.refresh);
-      }
-      return response.data;
-    } catch (error) {
-      console.error('Login error:', error.response?.data || error.message);
       throw error;
     }
   },
   
-  register: async (userData: any) => {
+  register: async (userData: {
+    email: string;
+    password: string;
+    first_name: string;
+    last_name: string;
+    username: string;
+    age?: number | null;
+    sex?: string | null;
+    country?: string | null;
+    skin_type?: string[];
+    skin_concerns?: string[];
+  }) => {
     try {
-      console.log('Attempting registration with:', { email: userData.email });
-      const response = await api.post('/api/users/register/', userData, {
-        timeout: 10000, // 10 seconds timeout for registration
-      });
-      console.log('Registration response:', response.data);
-      return response.data;
-    } catch (error) {
+      const response = await api.post('/auth/register/', userData);
+      return response;
+    } catch (error: any) {
       if (error.code === 'ECONNABORTED') {
-        throw new Error('Registration request timed out. Please check your internet connection and try again.');
+        throw new Error('Request timed out. Please try again.');
       }
-      console.error('Registration error:', error.response?.data || error.message);
+      if (error.response?.data) {
+        // Handle validation errors
+        if (error.response.status === 400) {
+          const errors = error.response.data;
+          const errorMessage = Object.entries(errors)
+            .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
+            .join('\n');
+          throw new Error(errorMessage);
+        }
+      }
       throw error;
     }
   },

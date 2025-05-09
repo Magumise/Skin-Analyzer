@@ -153,6 +153,18 @@ const Auth = () => {
         return;
       }
 
+      // Validate required fields
+      if (!formData.email || !formData.password || !formData.firstName || !formData.lastName) {
+        toast({
+          title: 'Missing required fields',
+          description: 'Please fill in all required fields',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+
       try {
         // Format the data for the backend
         const registrationData = {
@@ -161,7 +173,7 @@ const Auth = () => {
           first_name: formData.firstName,
           last_name: formData.lastName,
           username: formData.email.split('@')[0], // Generate username from email
-          age: parseInt(formData.age) || null,
+          age: formData.age ? parseInt(formData.age) : null,
           sex: formData.sex || null,
           country: formData.country || null,
           skin_type: Object.entries(formData.skinType)
@@ -193,11 +205,16 @@ const Auth = () => {
         navigate('/');
       } catch (error: any) {
         console.error('Registration error:', error);
+        const errorMessage = error.response?.data?.detail || 
+                            error.response?.data?.message || 
+                            error.message || 
+                            'Please try again later';
+        
         toast({
           title: 'Registration failed',
-          description: error.response?.data?.detail || error.message || 'Please try again later',
+          description: errorMessage,
           status: 'error',
-          duration: 3000,
+          duration: 5000,
           isClosable: true,
         });
       }
@@ -227,11 +244,16 @@ const Auth = () => {
         navigate('/');
       } catch (error: any) {
         console.error('Login error:', error);
+        const errorMessage = error.response?.data?.detail || 
+                            error.response?.data?.message || 
+                            error.message || 
+                            'Please check your credentials';
+        
         toast({
           title: 'Login failed',
-          description: error.response?.data?.detail || error.message || 'Please check your credentials',
+          description: errorMessage,
           status: 'error',
-          duration: 3000,
+          duration: 5000,
           isClosable: true,
         });
       }
