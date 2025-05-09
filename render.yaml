@@ -4,36 +4,30 @@ services:
     env: python
     runtime: python3.11
     buildCommand: |
-      pip install -r requirements.txt
-      cd aurora-main-backend
+      pip install -r backend/requirements.txt
       python manage.py makemigrations
       python manage.py migrate
       python manage.py collectstatic --noinput
-    startCommand: |
-      cd aurora-main-backend
-      export PYTHONPATH=$PYTHONPATH:$(pwd)
-      gunicorn aurora_skin_analyzer.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120
+    startCommand: gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120
     envVars:
-      - key: DATABASE_URL
-        value: postgres://postgres.ysezicwpvxpyoinljhaf:Dante@2025@aws-0-us-east-2.pooler.supabase.com:5432/postgres?sslmode=require
       - key: DEBUG
         value: false
       - key: ALLOWED_HOSTS
-        value: ai-skin-analyzer-backend.onrender.com
+        value: ai-skin-analyzer-nw9c.onrender.com
       - key: CORS_ALLOWED_ORIGINS
         value: https://ai-skin-analyzer.vercel.app
       - key: SECRET_KEY
         generateValue: true
       - key: PYTHONPATH
-        value: /opt/render/project/src/aurora-main-backend
+        value: /opt/render/project/src
       - key: DJANGO_SETTINGS_MODULE
-        value: aurora_skin_analyzer.settings
+        value: backend.settings
       - key: STATIC_ROOT
-        value: /opt/render/project/src/aurora-main-backend/staticfiles
+        value: /opt/render/project/src/staticfiles
       - key: STATIC_URL
         value: /static/
       - key: MEDIA_ROOT
-        value: /opt/render/project/src/aurora-main-backend/media
+        value: /opt/render/project/src/media
       - key: MEDIA_URL
         value: /media/
       - key: AI_SERVICE_URL
