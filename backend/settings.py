@@ -201,7 +201,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://frontend-daquwpjfm-kelvins-projects-d7489381.vercel.app",
     "https://frontend-gftvtru5f-kelvins-projects-d7489381.vercel.app",
     "https://frontend-2wmhq4k4i-kelvins-projects-d7489381.vercel.app",
-    "https://frontend-nsbzs9b1w-kelvins-projects-d7489381.vercel.app"
+    "https://frontend-nsbzs9b1w-kelvins-projects-d7489381.vercel.app",
+    "https://frontend-ksrsga2le-kelvins-projects-d7489381.vercel.app"
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -246,6 +247,7 @@ CORS_ORIGIN_WHITELIST = [
     "https://frontend-yymdm286x-kelvins-projects-d7489381.vercel.app",
     "https://frontend-2wmhq4k4i-kelvins-projects-d7489381.vercel.app",
     "https://frontend-nsbzs9b1w-kelvins-projects-d7489381.vercel.app",
+    "https://frontend-ksrsga2le-kelvins-projects-d7489381.vercel.app",
     "http://localhost:5173",
     "http://localhost:5174",
     "http://localhost:5175",
