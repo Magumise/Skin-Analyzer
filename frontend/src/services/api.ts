@@ -103,7 +103,7 @@ api.interceptors.response.use(
 export const authAPI = {
   login: async (credentials: { email: string; password: string }) => {
     try {
-      const response = await api.post('/auth/login/', credentials);
+      const response = await api.post('/api/auth/login/', credentials);
       return response;
     } catch (error: any) {
       if (error.code === 'ECONNABORTED') {
@@ -126,7 +126,7 @@ export const authAPI = {
     skin_concerns?: string[];
   }) => {
     try {
-      const response = await api.post('/auth/register/', userData);
+      const response = await api.post('/api/auth/register/', userData);
       return response;
     } catch (error: any) {
       if (error.code === 'ECONNABORTED') {
