@@ -153,6 +153,30 @@ const Auth = () => {
         return;
       }
 
+      // Validate password strength
+      if (formData.password.length < 8) {
+        toast({
+          title: 'Password too weak',
+          description: 'Password must be at least 8 characters long',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        toast({
+          title: 'Invalid email format',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+
       // Validate required fields
       if (!formData.email || !formData.password || !formData.firstName || !formData.lastName) {
         toast({
@@ -202,14 +226,26 @@ const Auth = () => {
           duration: 3000,
           isClosable: true,
         });
-        navigate('/');
+
+        navigate('/skin-analysis');
       } catch (error: any) {
         console.error('Registration error:', error);
-        const errorMessage = error.response?.data?.detail || 
-                            error.response?.data?.message || 
-                            error.message || 
-                            'Please try again later';
+        let errorMessage = 'Registration failed. Please try again.';
         
+        if (error.response?.data) {
+          // Handle specific backend validation errors
+          if (typeof error.response.data === 'object') {
+            const errors = Object.entries(error.response.data)
+              .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+              .join('\n');
+            errorMessage = errors;
+          } else {
+            errorMessage = error.response.data;
+          }
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
         toast({
           title: 'Registration failed',
           description: errorMessage,
@@ -219,15 +255,15 @@ const Auth = () => {
         });
       }
     } else {
-      // Login logic
+      // Login
       try {
         const response = await authAPI.login({
           email: formData.email,
-          password: formData.password,
+          password: formData.password
         });
 
         console.log('Login successful:', response.data);
-        
+
         // Store the tokens in localStorage
         if (response.data.tokens) {
           localStorage.setItem('access_token', response.data.tokens.access);
@@ -236,19 +272,22 @@ const Auth = () => {
 
         toast({
           title: 'Login successful!',
-          description: 'Welcome back to AI Skin Analyzer',
           status: 'success',
           duration: 3000,
           isClosable: true,
         });
-        navigate('/');
+
+        navigate('/skin-analysis');
       } catch (error: any) {
         console.error('Login error:', error);
-        const errorMessage = error.response?.data?.detail || 
-                            error.response?.data?.message || 
-                            error.message || 
-                            'Please check your credentials';
+        let errorMessage = 'Login failed. Please check your credentials.';
         
+        if (error.response?.data) {
+          errorMessage = error.response.data.detail || error.response.data.message || errorMessage;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
         toast({
           title: 'Login failed',
           description: errorMessage,

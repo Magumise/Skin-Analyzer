@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://ai-skin-analyzer-nw9c.onrender.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://ai-skin-analyzer-nw9c.onrender.com';
 
 // Create an axios instance with default config
 const api = axios.create({
@@ -10,7 +10,7 @@ const api = axios.create({
     'Accept': 'application/json',
   },
   withCredentials: true,
-  timeout: 30000, // Increased to 30 seconds timeout for regular requests
+  timeout: 30000,
 });
 
 // Create a separate axios instance for the AI model
@@ -30,6 +30,9 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Remove any existing CORS headers to prevent conflicts
+    delete config.headers['Access-Control-Allow-Origin'];
+    delete config.headers['Access-Control-Allow-Credentials'];
     return config;
   },
   (error) => {
@@ -64,10 +67,14 @@ api.interceptors.response.use(
           throw new Error('No refresh token available');
         }
 
-        const response = await axios.post(`${API_URL}/auth/token/refresh/`, {
+        const response = await axios.post(`${API_URL}/api/auth/token/refresh/`, {
           refresh: refreshToken
         }, {
-          timeout: 30000 // 30 seconds timeout for token refresh
+          timeout: 30000,
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          }
         });
 
         const { access } = response.data;
