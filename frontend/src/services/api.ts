@@ -7,10 +7,9 @@ const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
   },
   withCredentials: true,
-  timeout: 30000,
+  timeout: 10000,
 });
 
 // Create a separate axios instance for the AI model
@@ -42,20 +41,10 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    console.error('API Error:', error.response?.data || error.message);
-    
-    if (!error.response) {
-      // Network error or server not responding
-      if (error.code === 'ECONNABORTED') {
-        throw new Error('Request timed out. Please try again.');
-      }
-      throw new Error('Network error. Please check your internet connection.');
-    }
-
     const originalRequest = error.config;
 
     // If the error is 401 and we haven't tried to refresh the token yet
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
@@ -68,22 +57,43 @@ api.interceptors.response.use(
           refresh: refreshToken
         });
 
-        const { access } = response.data;
-        localStorage.setItem('access_token', access);
-
-        // Retry the original request with the new token
-        originalRequest.headers.Authorization = `Bearer ${access}`;
-        return api(originalRequest);
+        if (response.data && response.data.access) {
+          localStorage.setItem('access_token', response.data.access);
+          
+          // Retry the original request with the new token
+          originalRequest.headers.Authorization = `Bearer ${response.data.access}`;
+          return api(originalRequest);
+        }
       } catch (refreshError) {
-        // If refresh token fails, redirect to login
+        // If refresh token fails, clear tokens and redirect to login
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
-        window.location.href = '/login';
+        window.location.href = '/auth';
         return Promise.reject(refreshError);
       }
     }
 
-    return Promise.reject(error);
+    // Handle specific error cases
+    if (error.response) {
+      switch (error.response.status) {
+        case 400:
+          throw new Error(error.response.data.detail || 'Bad request');
+        case 401:
+          throw new Error('Unauthorized access');
+        case 403:
+          throw new Error('Forbidden access');
+        case 404:
+          throw new Error('Resource not found');
+        case 500:
+          throw new Error('Internal server error');
+        default:
+          throw new Error('An error occurred');
+      }
+    } else if (error.request) {
+      throw new Error('No response from server');
+    } else {
+      throw new Error('Request configuration error');
+    }
   }
 );
 
@@ -109,6 +119,10 @@ export const authAPI = {
   login: async (credentials: { email: string; password: string }) => {
     try {
       const response = await api.post('/api/users/login/', credentials);
+      if (response.data && response.data.tokens) {
+        localStorage.setItem('access_token', response.data.tokens.access);
+        localStorage.setItem('refresh_token', response.data.tokens.refresh);
+      }
       return response;
     } catch (error: any) {
       if (error.response?.data) {
@@ -118,32 +132,50 @@ export const authAPI = {
     }
   },
   
-  register: async (userData: {
-    email: string;
-    password: string;
-    first_name: string;
-    last_name: string;
-    username: string;
-    age?: number | null;
-    sex?: string | null;
-    country?: string | null;
-    skin_type?: string[];
-    skin_concerns?: string[];
-  }) => {
+  register: async (userData: any) => {
     try {
       const response = await api.post('/api/users/register/', userData);
+      if (response.data && response.data.tokens) {
+        localStorage.setItem('access_token', response.data.tokens.access);
+        localStorage.setItem('refresh_token', response.data.tokens.refresh);
+      }
       return response;
     } catch (error: any) {
       if (error.response?.data) {
         const errors = error.response.data;
         const errorMessage = Object.entries(errors)
-          .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
+          .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
           .join('\n');
         throw new Error(errorMessage);
       }
       throw error;
     }
   },
+
+  logout: async () => {
+    try {
+      await api.post('/api/users/logout/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+    }
+  },
+
+  verifyToken: async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        return false;
+      }
+
+      await api.post('/api/users/token/verify/', { token });
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
 };
 
 // Image API
@@ -152,6 +184,18 @@ export const imageAPI = {
     try {
       const formData = new FormData();
       formData.append('image', imageFile);
+      
+      // Validate file size (max 5MB)
+      if (imageFile.size > 5 * 1024 * 1024) {
+        throw new Error('Image size must be less than 5MB');
+      }
+      
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+      if (!allowedTypes.includes(imageFile.type)) {
+        throw new Error('Only JPEG and PNG images are allowed');
+      }
+
       const response = await api.post('/api/images/upload/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',

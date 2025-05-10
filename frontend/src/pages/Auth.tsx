@@ -66,6 +66,7 @@ const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const toast = useToast();
   
@@ -112,6 +113,21 @@ const Auth = () => {
     }
   }, []);
 
+  useEffect(() => {
+    // Check if user is already logged in
+    const checkAuth = async () => {
+      try {
+        const isValid = await authAPI.verifyToken();
+        if (isValid) {
+          navigate('/skin-analysis');
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+      }
+    };
+    checkAuth();
+  }, [navigate]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -140,56 +156,57 @@ const Auth = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
-    if (!isLogin) {
-      // Registration validation
-      if (formData.password !== formData.confirmPassword) {
-        toast({
-          title: 'Passwords do not match',
-          status: 'error',
-          duration: 3000,
-          isClosable: true,
-        });
-        return;
-      }
+    try {
+      if (!isLogin) {
+        // Registration validation
+        if (formData.password !== formData.confirmPassword) {
+          toast({
+            title: 'Passwords do not match',
+            status: 'error',
+            duration: 3000,
+            isClosable: true,
+          });
+          return;
+        }
 
-      // Validate password strength
-      if (formData.password.length < 8) {
-        toast({
-          title: 'Password too weak',
-          description: 'Password must be at least 8 characters long',
-          status: 'error',
-          duration: 3000,
-          isClosable: true,
-        });
-        return;
-      }
+        // Validate password strength
+        if (formData.password.length < 8) {
+          toast({
+            title: 'Password too weak',
+            description: 'Password must be at least 8 characters long',
+            status: 'error',
+            duration: 3000,
+            isClosable: true,
+          });
+          return;
+        }
 
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email)) {
-        toast({
-          title: 'Invalid email format',
-          status: 'error',
-          duration: 3000,
-          isClosable: true,
-        });
-        return;
-      }
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+          toast({
+            title: 'Invalid email format',
+            status: 'error',
+            duration: 3000,
+            isClosable: true,
+          });
+          return;
+        }
 
-      // Validate required fields
-      if (!formData.email || !formData.password || !formData.firstName || !formData.lastName) {
-        toast({
-          title: 'Missing required fields',
-          description: 'Please fill in all required fields',
-          status: 'error',
-          duration: 3000,
-          isClosable: true,
-        });
-        return;
-      }
+        // Validate required fields
+        if (!formData.email || !formData.password || !formData.firstName || !formData.lastName) {
+          toast({
+            title: 'Missing required fields',
+            description: 'Please fill in all required fields',
+            status: 'error',
+            duration: 3000,
+            isClosable: true,
+          });
+          return;
+        }
 
-      try {
         // Format the data for the backend
         const registrationData = {
           email: formData.email,
@@ -213,12 +230,6 @@ const Auth = () => {
         const response = await authAPI.register(registrationData);
         console.log('Registration successful:', response.data);
         
-        // Store the tokens in localStorage
-        if (response.data.tokens) {
-          localStorage.setItem('access_token', response.data.tokens.access);
-          localStorage.setItem('refresh_token', response.data.tokens.refresh);
-        }
-
         toast({
           title: 'Account created successfully!',
           description: 'Welcome to AI Skin Analyzer',
@@ -228,47 +239,14 @@ const Auth = () => {
         });
 
         navigate('/skin-analysis');
-      } catch (error: any) {
-        console.error('Registration error:', error);
-        let errorMessage = 'Registration failed. Please try again.';
-        
-        if (error.response?.data) {
-          // Handle specific backend validation errors
-          if (typeof error.response.data === 'object') {
-            const errors = Object.entries(error.response.data)
-              .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
-              .join('\n');
-            errorMessage = errors;
-          } else {
-            errorMessage = error.response.data;
-          }
-        } else if (error.message) {
-          errorMessage = error.message;
-        }
-
-        toast({
-          title: 'Registration failed',
-          description: errorMessage,
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-        });
-      }
-    } else {
-      // Login
-      try {
+      } else {
+        // Login
         const response = await authAPI.login({
           email: formData.email,
           password: formData.password
         });
 
         console.log('Login successful:', response.data);
-
-        // Store the tokens in localStorage
-        if (response.data.tokens) {
-          localStorage.setItem('access_token', response.data.tokens.access);
-          localStorage.setItem('refresh_token', response.data.tokens.refresh);
-        }
 
         toast({
           title: 'Login successful!',
@@ -278,24 +256,33 @@ const Auth = () => {
         });
 
         navigate('/skin-analysis');
-      } catch (error: any) {
-        console.error('Login error:', error);
-        let errorMessage = 'Login failed. Please check your credentials.';
-        
-        if (error.response?.data) {
-          errorMessage = error.response.data.detail || error.response.data.message || errorMessage;
-        } else if (error.message) {
-          errorMessage = error.message;
-        }
-
-        toast({
-          title: 'Login failed',
-          description: errorMessage,
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-        });
       }
+    } catch (error: any) {
+      console.error(isLogin ? 'Login error:' : 'Registration error:', error);
+      let errorMessage = isLogin ? 'Login failed. Please check your credentials.' : 'Registration failed. Please try again.';
+      
+      if (error.response?.data) {
+        if (typeof error.response.data === 'object') {
+          const errors = Object.entries(error.response.data)
+            .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+            .join('\n');
+          errorMessage = errors;
+        } else {
+          errorMessage = error.response.data.detail || error.response.data.message || errorMessage;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast({
+        title: isLogin ? 'Login failed' : 'Registration failed',
+        description: errorMessage,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -606,6 +593,7 @@ const Auth = () => {
                     bgGradient: "linear(to-r, pink.600, purple.700)"
                   }}
                   transition="all 0.2s"
+                  isLoading={isLoading}
                 >
                   {isLogin ? 'Sign In' : 'Create Account'}
                 </Button>
