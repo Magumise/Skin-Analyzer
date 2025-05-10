@@ -30,9 +30,6 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    // Remove any existing CORS headers to prevent conflicts
-    delete config.headers['Access-Control-Allow-Origin'];
-    delete config.headers['Access-Control-Allow-Credentials'];
     return config;
   },
   (error) => {
@@ -67,14 +64,8 @@ api.interceptors.response.use(
           throw new Error('No refresh token available');
         }
 
-        const response = await axios.post(`${API_URL}/api/auth/token/refresh/`, {
+        const response = await axios.post(`${API_URL}/api/users/token/refresh/`, {
           refresh: refreshToken
-        }, {
-          timeout: 30000,
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          }
         });
 
         const { access } = response.data;
@@ -90,18 +81,6 @@ api.interceptors.response.use(
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }
-    }
-
-    // Handle specific error cases
-    if (error.response.status === 400) {
-      const message = error.response.data.message || error.response.data.detail || 'Invalid request';
-      throw new Error(message);
-    } else if (error.response.status === 403) {
-      throw new Error('Access denied');
-    } else if (error.response.status === 404) {
-      throw new Error('Resource not found');
-    } else if (error.response.status >= 500) {
-      throw new Error('Server error. Please try again later.');
     }
 
     return Promise.reject(error);
@@ -129,16 +108,11 @@ const retryRequest = async (config: any, retryCount = 0) => {
 export const authAPI = {
   login: async (credentials: { email: string; password: string }) => {
     try {
-      const response = await retryRequest({
-        method: 'post',
-        url: '/api/users/login/',
-        data: credentials,
-        timeout: 30000
-      });
+      const response = await api.post('/api/users/login/', credentials);
       return response;
     } catch (error: any) {
-      if (error.code === 'ECONNABORTED') {
-        throw new Error('Request timed out. Please try again.');
+      if (error.response?.data) {
+        throw new Error(error.response.data.detail || 'Login failed');
       }
       throw error;
     }
@@ -157,26 +131,15 @@ export const authAPI = {
     skin_concerns?: string[];
   }) => {
     try {
-      const response = await retryRequest({
-        method: 'post',
-        url: '/api/users/register/',
-        data: userData,
-        timeout: 30000
-      });
+      const response = await api.post('/api/users/register/', userData);
       return response;
     } catch (error: any) {
-      if (error.code === 'ECONNABORTED') {
-        throw new Error('Request timed out. Please try again.');
-      }
       if (error.response?.data) {
-        // Handle validation errors
-        if (error.response.status === 400) {
-          const errors = error.response.data;
-          const errorMessage = Object.entries(errors)
-            .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
-            .join('\n');
-          throw new Error(errorMessage);
-        }
+        const errors = error.response.data;
+        const errorMessage = Object.entries(errors)
+          .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
+          .join('\n');
+        throw new Error(errorMessage);
       }
       throw error;
     }

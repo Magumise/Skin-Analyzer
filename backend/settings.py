@@ -82,18 +82,17 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': 'Dante@2025',
-        'HOST': 'db.ysezicwpvxpyoinljhaf.supabase.co',
-        'PORT': '5432',
-        'OPTIONS': {
-            'sslmode': 'require',
-        },
-    }
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL', 'postgres://postgres:Dante@2025@db.ysezicwpvxpyoinljhaf.supabase.co:5432/postgres'),
+        conn_max_age=600,
+        conn_health_checks=True,
+        ssl_require=True
+    )
 }
+
+# Add database connection retry settings
+DATABASE_CONN_MAX_RETRIES = 3
+DATABASE_CONN_RETRY_INTERVAL = 5  # seconds
 
 
 # Password validation
@@ -244,14 +243,7 @@ CORS_PREFLIGHT_MAX_AGE = 86400
 
 # Additional CORS settings
 CORS_ORIGIN_ALLOW_ALL = False
-CORS_ORIGIN_WHITELIST = [
-    "https://frontend-two-mu-37.vercel.app",
-    "https://frontend-git-main-kelvins-projects-61a51e51.vercel.app",
-    "https://frontend-kphhja9hb-kelvins-projects-61a51e51.vercel.app",
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://localhost:5175",
-]
+CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS
 
 # Cache settings
 CACHES = {

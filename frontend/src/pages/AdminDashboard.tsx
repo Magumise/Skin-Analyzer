@@ -132,7 +132,7 @@ const AdminDashboard = () => {
     setIsLoading(true);
     try {
       console.log('Fetching products from server...');
-      const response = await axios.get('http://localhost:8000/api/products/', {
+      const response = await productAPI.get('/api/products/', {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
@@ -162,19 +162,14 @@ const AdminDashboard = () => {
       
       let errorMessage = 'Failed to load products from the server';
       if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
         errorMessage = `Server error: ${error.response.status} - ${error.response.statusText}`;
         if (error.response.status === 401) {
-          // Handle unauthorized access
           navigate('/admin/login');
           return;
         }
       } else if (error.request) {
-        // The request was made but no response was received
         errorMessage = 'No response received from server. Please check if the server is running.';
       } else {
-        // Something happened in setting up the request that triggered an Error
         errorMessage = `Error: ${error.message}`;
       }
       
@@ -193,7 +188,7 @@ const AdminDashboard = () => {
   const fetchUsers = async () => {
     setIsLoadingUsers(true);
     try {
-      const response = await axios.get('http://localhost:8000/api/users/', {
+      const response = await productAPI.get('/api/users/', {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
