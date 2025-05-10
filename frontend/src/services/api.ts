@@ -131,7 +131,7 @@ export const authAPI = {
     try {
       const response = await retryRequest({
         method: 'post',
-        url: '/api/auth/login/',
+        url: '/api/users/login/',
         data: credentials,
         timeout: 30000
       });
@@ -159,7 +159,7 @@ export const authAPI = {
     try {
       const response = await retryRequest({
         method: 'post',
-        url: '/api/auth/register/',
+        url: '/api/users/register/',
         data: userData,
         timeout: 30000
       });

@@ -57,7 +57,7 @@ export const register = async (userData: {
   password: string;
 }) => {
   try {
-    const response = await api.post('/api/auth/register/', userData, {
+    const response = await api.post('/api/users/register/', userData, {
       timeout: 30000 // 30 seconds timeout for registration
     });
     return response.data;
@@ -71,7 +71,7 @@ export const register = async (userData: {
 
 export const login = async (credentials: { email: string; password: string }) => {
   try {
-    const response = await api.post('/api/auth/login/', credentials, {
+    const response = await api.post('/api/users/login/', credentials, {
       timeout: 30000 // 30 seconds timeout for login
     });
     return response.data;

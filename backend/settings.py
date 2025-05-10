@@ -204,7 +204,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://frontend-two-mu-37.vercel.app",
-    "https://frontend-git-main-kelvins-projects-61a51e51.vercel.app"
+    "https://frontend-git-main-kelvins-projects-61a51e51.vercel.app",
+    "https://frontend-kphhja9hb-kelvins-projects-61a51e51.vercel.app"
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -246,6 +247,7 @@ CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = [
     "https://frontend-two-mu-37.vercel.app",
     "https://frontend-git-main-kelvins-projects-61a51e51.vercel.app",
+    "https://frontend-kphhja9hb-kelvins-projects-61a51e51.vercel.app",
     "http://localhost:5173",
     "http://localhost:5174",
     "http://localhost:5175",
@@ -273,9 +275,9 @@ SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 
-# Security settings
-SECURE_SSL_REDIRECT = True
-CSRF_COOKIE_SECURE = True
+# Security settings - Adjusted for development
+SECURE_SSL_REDIRECT = False  # Set to True in production
+CSRF_COOKIE_SECURE = False  # Set to True in production
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Lax'
 SECURE_BROWSER_XSS_FILTER = True
