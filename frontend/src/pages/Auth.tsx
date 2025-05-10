@@ -30,6 +30,7 @@ import { ViewIcon, ViewOffIcon, InfoIcon } from '@chakra-ui/icons';
 import { motion } from 'framer-motion';
 import bgImage from '../new.png';  // Make sure this path matches your image location
 import { authAPI } from '../services/api';
+import APITest from '../components/APITest';
 
 const MotionBox = motion(Box);
 
@@ -679,6 +680,13 @@ const Auth = () => {
           </Flex>
         </Box>
       </Container>
+      
+      {/* Add the API Test component */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-8">
+          <APITest />
+        </div>
+      )}
     </Box>
   );
 };

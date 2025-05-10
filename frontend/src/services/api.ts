@@ -1,25 +1,17 @@
 import axios from 'axios';
 
+// API configuration
 const API_URL = import.meta.env.VITE_API_URL || 'https://ai-skin-analyzer-nw9c.onrender.com';
 
-// Create an axios instance with default config
+// Create axios instance with default config
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
-  },
-  withCredentials: true,
-  timeout: 10000,
-});
-
-// Create a separate axios instance for the AI model
-const aiModelApi = axios.create({
-  baseURL: 'https://us-central1-aurora-457407.cloudfunctions.net/predict',
-  headers: {
     'Accept': 'application/json',
   },
-  withCredentials: false,
-  timeout: 120000, // 120 seconds timeout for AI model
+  withCredentials: true,
+  timeout: 30000, // Increased timeout
 });
 
 // Add request interceptor to add token to requests
@@ -45,7 +37,8 @@ api.interceptors.response.use(
 
     // Handle CORS errors
     if (error.message && error.message.includes('CORS')) {
-      throw new Error('CORS error: Unable to connect to the server. Please check your network connection and try again.');
+      console.error('CORS Error:', error);
+      throw new Error('Unable to connect to the server. Please try again later.');
     }
 
     // Handle network errors
@@ -53,7 +46,8 @@ api.interceptors.response.use(
       if (error.code === 'ECONNABORTED') {
         throw new Error('Request timed out. Please try again.');
       }
-      throw new Error('Network error. Please check your internet connection and try again.');
+      console.error('Network Error:', error);
+      throw new Error('Unable to connect to the server. Please check your internet connection and try again.');
     }
 
     const originalRequest = error.config;
@@ -110,28 +104,13 @@ api.interceptors.response.use(
   }
 );
 
-// Add retry logic for failed requests
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000; // 1 second
-
-const retryRequest = async (config: any, retryCount = 0) => {
-  try {
-    return await api(config);
-  } catch (error: any) {
-    if (retryCount < MAX_RETRIES && (error.code === 'ECONNABORTED' || !error.response)) {
-      // Wait before retrying (exponential backoff)
-      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * Math.pow(2, retryCount)));
-      return retryRequest(config, retryCount + 1);
-    }
-    throw error;
-  }
-};
-
 // Auth API
 export const authAPI = {
   login: async (credentials: { email: string; password: string }) => {
     try {
+      console.log('Attempting login with:', credentials);
       const response = await api.post('/api/users/login/', credentials);
+      console.log('Login response:', response.data);
       if (response.data && response.data.tokens) {
         localStorage.setItem('access_token', response.data.tokens.access);
         localStorage.setItem('refresh_token', response.data.tokens.refresh);
@@ -145,10 +124,12 @@ export const authAPI = {
       throw error;
     }
   },
-  
+
   register: async (userData: any) => {
     try {
+      console.log('Attempting registration with:', userData);
       const response = await api.post('/api/users/register/', userData);
+      console.log('Registration response:', response.data);
       if (response.data && response.data.tokens) {
         localStorage.setItem('access_token', response.data.tokens.access);
         localStorage.setItem('refresh_token', response.data.tokens.refresh);
@@ -192,158 +173,3 @@ export const authAPI = {
     }
   }
 };
-
-// Image API
-export const imageAPI = {
-  uploadImage: async (imageFile: File) => {
-    try {
-      const formData = new FormData();
-      formData.append('image', imageFile);
-      
-      // Validate file size (max 5MB)
-      if (imageFile.size > 5 * 1024 * 1024) {
-        throw new Error('Image size must be less than 5MB');
-      }
-      
-      // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-      if (!allowedTypes.includes(imageFile.type)) {
-        throw new Error('Only JPEG and PNG images are allowed');
-      }
-
-      const response = await api.post('/api/images/upload/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        timeout: 60000, // 60 seconds timeout for image upload
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Image upload error:', error.response?.data || error.message);
-      throw error;
-    }
-  },
-  
-  analyzeImage: async (imageFile: File) => {
-    console.log('Analyzing image with cloud AI model:', {
-      fileName: imageFile.name,
-      fileSize: imageFile.size,
-      fileType: imageFile.type
-    });
-
-    const formData = new FormData();
-    formData.append('file', imageFile);
-    
-    // Add retry logic for AI model analysis
-    const maxRetries = 3;
-    let retryCount = 0;
-    
-    while (retryCount < maxRetries) {
-      try {
-        const response = await aiModelApi.post('', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-          timeout: 120000, // 120 seconds timeout for AI model
-        });
-
-        console.log('Cloud AI model response:', response.data);
-        return response.data;
-      } catch (error) {
-        retryCount++;
-        console.error(`Attempt ${retryCount} failed:`, error);
-        
-        if (retryCount === maxRetries) {
-          throw new Error('Failed to analyze image after multiple attempts. Please try again later.');
-        }
-        
-        // Wait before retrying (exponential backoff)
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
-      }
-    }
-  },
-};
-
-// Product API
-export const productAPI = {
-  getProducts: () =>
-    api.get('/api/products/'),
-  
-  getProduct: (id: number) =>
-    api.get(`/api/products/${id}/`),
-    
-  createProduct: (productData: any) =>
-    api.post('/api/products/add/', productData),
-    
-  updateProduct: (id: number, productData: any) =>
-    api.put(`/api/products/${id}/`, productData),
-    
-  deleteProduct: (id: number) =>
-    api.delete(`/api/products/${id}/`),
-    
-  updateProductImage: (id: number, imageFile: File) => {
-    const formData = new FormData();
-    formData.append('image', imageFile);
-    return api.patch(`/api/products/${id}/image/`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-  },
-};
-
-// Consultation API
-export const consultationAPI = {
-  createConsultation: (consultationData: { 
-    date: string; 
-    message: string; 
-  }) => 
-    api.post('/consultations/create/', consultationData),
-  
-  getUserConsultations: () => 
-    api.get('/consultations/user/'),
-};
-
-// Test function to verify AI model endpoint
-export const testAIModel = async () => {
-  try {
-    // Create a simple test image (1x1 pixel)
-    const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = 1;
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.fillStyle = 'white';
-      ctx.fillRect(0, 0, 1, 1);
-    }
-    
-    // Convert canvas to blob
-    const blob = await new Promise<Blob>((resolve) => {
-      canvas.toBlob((blob) => {
-        if (blob) resolve(blob);
-      }, 'image/jpeg');
-    });
-    
-    // Create file from blob
-    const testFile = new File([blob], 'test.jpg', { type: 'image/jpeg' });
-    
-    // Create form data
-    const formData = new FormData();
-    formData.append('file', testFile);
-    
-    // Send test request
-    const response = await aiModelApi.post('', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    
-    console.log('AI Model Test Response:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('AI Model Test Error:', error);
-    throw error;
-  }
-};
-
-export default api; 
