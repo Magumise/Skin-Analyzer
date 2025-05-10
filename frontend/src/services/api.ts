@@ -41,6 +41,21 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    console.error('API Error:', error);
+
+    // Handle CORS errors
+    if (error.message && error.message.includes('CORS')) {
+      throw new Error('CORS error: Unable to connect to the server. Please check your network connection and try again.');
+    }
+
+    // Handle network errors
+    if (!error.response) {
+      if (error.code === 'ECONNABORTED') {
+        throw new Error('Request timed out. Please try again.');
+      }
+      throw new Error('Network error. Please check your internet connection and try again.');
+    }
+
     const originalRequest = error.config;
 
     // If the error is 401 and we haven't tried to refresh the token yet
@@ -77,23 +92,21 @@ api.interceptors.response.use(
     if (error.response) {
       switch (error.response.status) {
         case 400:
-          throw new Error(error.response.data.detail || 'Bad request');
+          throw new Error(error.response.data.detail || 'Invalid request data');
         case 401:
-          throw new Error('Unauthorized access');
+          throw new Error('Unauthorized access. Please log in again.');
         case 403:
-          throw new Error('Forbidden access');
+          throw new Error('You do not have permission to perform this action.');
         case 404:
-          throw new Error('Resource not found');
+          throw new Error('The requested resource was not found.');
         case 500:
-          throw new Error('Internal server error');
+          throw new Error('Server error. Please try again later.');
         default:
-          throw new Error('An error occurred');
+          throw new Error(error.response.data.detail || 'An error occurred. Please try again.');
       }
-    } else if (error.request) {
-      throw new Error('No response from server');
-    } else {
-      throw new Error('Request configuration error');
     }
+
+    return Promise.reject(error);
   }
 );
 
@@ -125,8 +138,9 @@ export const authAPI = {
       }
       return response;
     } catch (error: any) {
+      console.error('Login error:', error);
       if (error.response?.data) {
-        throw new Error(error.response.data.detail || 'Login failed');
+        throw new Error(error.response.data.detail || 'Login failed. Please check your credentials.');
       }
       throw error;
     }
@@ -141,12 +155,13 @@ export const authAPI = {
       }
       return response;
     } catch (error: any) {
+      console.error('Registration error:', error);
       if (error.response?.data) {
         const errors = error.response.data;
         const errorMessage = Object.entries(errors)
           .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
           .join('\n');
-        throw new Error(errorMessage);
+        throw new Error(errorMessage || 'Registration failed. Please check your input and try again.');
       }
       throw error;
     }

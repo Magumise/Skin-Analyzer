@@ -205,7 +205,7 @@ SIMPLE_JWT = {
 }
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173,https://ai-skin-analyzer-nw9c.onrender.com').split(',')
+CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173,https://ai-skin-analyzer-nw9c.onrender.com,https://frontend-two-mu-37.vercel.app').split(',')
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -230,20 +230,11 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-CORS_EXPOSE_HEADERS = [
-    'Content-Type',
-    'X-CSRFToken',
-    'access-control-allow-origin',
-    'access-control-allow-headers',
-    'access-control-allow-methods',
-    'access-control-allow-credentials',
-]
-
-CORS_PREFLIGHT_MAX_AGE = 86400
-
 # Additional CORS settings
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
 
 # Cache settings
 CACHES = {
