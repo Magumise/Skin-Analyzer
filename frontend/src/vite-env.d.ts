@@ -7,7 +7,7 @@ declare module '*.jpg' {
 
 interface ImportMetaEnv {
   readonly VITE_API_URL: string
-  readonly MODE: string
+  MODE: string
   // more env variables...
 }
 

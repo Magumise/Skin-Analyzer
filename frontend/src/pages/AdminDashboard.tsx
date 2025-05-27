@@ -93,6 +93,11 @@ interface FormData {
 // Initial empty products array (will be populated from API)
 const initialProducts: any[] = [];
 
+// Add this type guard function at the top of the file, after the imports
+function isError(error: unknown): error is Error {
+  return error instanceof Error;
+}
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const isDesktop = useBreakpointValue({ base: false, lg: true });
@@ -149,7 +154,7 @@ const AdminDashboard = () => {
       });
     } catch (error) {
       console.error('Error details:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load products from the server';
+      const errorMessage = isError(error) ? error.message : 'Failed to load products from the server';
       
       toast({
         title: 'Error loading products',
@@ -177,7 +182,7 @@ const AdminDashboard = () => {
       });
     } catch (error) {
       console.error('Error loading users:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load users';
+      const errorMessage = isError(error) ? error.message : 'Failed to load users';
       
       toast({
         title: 'Error loading users',
@@ -246,7 +251,7 @@ const AdminDashboard = () => {
           });
         } catch (error) {
           console.error('Error updating product image:', error);
-          const errorMessage = error instanceof Error ? error.message : "Please try again";
+          const errorMessage = isError(error) ? error.message : "Please try again";
           toast({
             title: "Failed to update product image",
             description: errorMessage,
@@ -261,7 +266,7 @@ const AdminDashboard = () => {
       setFormData(prev => ({ ...prev, image: URL.createObjectURL(file) }));
     } catch (error) {
       console.error('Error handling image change:', error);
-      const errorMessage = error instanceof Error ? error.message : "Please try again";
+      const errorMessage = isError(error) ? error.message : "Please try again";
       toast({
         title: "Error handling image",
         description: errorMessage,
@@ -377,7 +382,7 @@ const AdminDashboard = () => {
             });
           } catch (error) {
             console.error('Error updating product image:', error);
-            const errorMessage = error instanceof Error ? error.message : "Please try again";
+            const errorMessage = isError(error) ? error.message : "Please try again";
             toast({
               title: "Error updating product image",
               description: errorMessage,
@@ -403,7 +408,7 @@ const AdminDashboard = () => {
             });
           } catch (error) {
             console.error('Error uploading product image:', error);
-            const errorMessage = error instanceof Error ? error.message : "Please try again";
+            const errorMessage = isError(error) ? error.message : "Please try again";
             toast({
               title: "Error uploading product image",
               description: errorMessage,
@@ -432,7 +437,7 @@ const AdminDashboard = () => {
       fetchProducts();
     } catch (error) {
       console.error('Error submitting form:', error);
-      const errorMessage = error instanceof Error ? error.message : "Please try again";
+      const errorMessage = isError(error) ? error.message : "Please try again";
       toast({
         title: "Error saving product",
         description: errorMessage,
@@ -523,7 +528,7 @@ const AdminDashboard = () => {
   };
 
   const handleError = (error: unknown) => {
-    if (error instanceof Error) {
+    if (isError(error)) {
       console.error('Error:', error.message);
     } else {
       console.error('Unknown error occurred');
@@ -531,7 +536,7 @@ const AdminDashboard = () => {
   };
 
   const handleApiError = (error: unknown) => {
-    if (error instanceof Error) {
+    if (isError(error)) {
       console.error('API Error:', error.message);
     } else {
       console.error('Unknown API error occurred');
