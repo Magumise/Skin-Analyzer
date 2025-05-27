@@ -51,11 +51,12 @@ services:
     buildCommand: |
       cd frontend
       npm install
+      npm install -g vite
       npm run build
-    startCommand: cd frontend && npm run start
+    startCommand: cd frontend && npx vite preview --host 0.0.0.0 --port $PORT
     envVars:
       - key: VITE_API_URL
-        value: https://ai-skin-analyzer-backend.onrender.com
+        value: https://ai-skin-analyzer-backend-patg.onrender.com
       - key: NODE_ENV
         value: production
 
