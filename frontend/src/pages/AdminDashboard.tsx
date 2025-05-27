@@ -395,9 +395,10 @@ const AdminDashboard = () => {
         updatedProduct = await handleUpdateProduct(selectedProduct.id, productData);
         
         // Update image if it has changed and is a File object
-        if (typeof formData.image === 'object' && formData.image instanceof File) {
+        const imageFile = formData.image as unknown;
+        if (imageFile && typeof imageFile === 'object' && 'name' in imageFile && 'size' in imageFile) {
           try {
-            await handleUpdateProductImage(selectedProduct.id, formData.image);
+            await handleUpdateProductImage(selectedProduct.id, imageFile as File);
             toast({
               title: "Product updated successfully",
               status: "success",
@@ -421,9 +422,10 @@ const AdminDashboard = () => {
         updatedProduct = await addProduct(productData);
         
         // Upload image if it's a File object
-        if (typeof formData.image === 'object' && formData.image instanceof File) {
+        const imageFile = formData.image as unknown;
+        if (imageFile && typeof imageFile === 'object' && 'name' in imageFile && 'size' in imageFile) {
           try {
-            await handleUpdateProductImage(updatedProduct.id, formData.image);
+            await handleUpdateProductImage(updatedProduct.id, imageFile as File);
             toast({
               title: "Product added successfully",
               status: "success",
