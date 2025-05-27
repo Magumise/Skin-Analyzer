@@ -395,7 +395,7 @@ const AdminDashboard = () => {
         updatedProduct = await handleUpdateProduct(selectedProduct.id, productData);
         
         // Update image if it has changed and is a File object
-        if (formData.image instanceof File) {
+        if (typeof formData.image === 'object' && formData.image instanceof File) {
           try {
             await handleUpdateProductImage(selectedProduct.id, formData.image);
             toast({
@@ -421,7 +421,7 @@ const AdminDashboard = () => {
         updatedProduct = await addProduct(productData);
         
         // Upload image if it's a File object
-        if (formData.image instanceof File) {
+        if (typeof formData.image === 'object' && formData.image instanceof File) {
           try {
             await handleUpdateProductImage(updatedProduct.id, formData.image);
             toast({
