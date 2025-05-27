@@ -2,44 +2,25 @@ services:
   - type: web
     name: ai-skin-analyzer-backend
     env: python
-    runtime: python3.11
     buildCommand: |
       cd backend
       pip install -r requirements.txt
       python manage.py makemigrations
       python manage.py migrate
       python manage.py collectstatic --noinput
-      python create_admin.py
-    startCommand: cd backend && gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120 --log-level info
+      python manage.py create_superuser
+    startCommand: cd backend && gunicorn backend.wsgi:application
     envVars:
-      - key: DEBUG
-        value: false
-      - key: ALLOWED_HOSTS
-        value: ai-skin-analyzer-backend.onrender.com
-      - key: CORS_ALLOWED_ORIGINS
-        value: https://ai-skin-analyzer-frontend.onrender.com
+      - key: PYTHON_VERSION
+        value: 3.9.0
       - key: SECRET_KEY
         generateValue: true
-      - key: PYTHONPATH
-        value: /opt/render/project/src
-      - key: DJANGO_SETTINGS_MODULE
-        value: backend.settings
-      - key: STATIC_ROOT
-        value: /opt/render/project/src/backend/staticfiles
-      - key: STATIC_URL
-        value: /static/
-      - key: MEDIA_ROOT
-        value: /opt/render/project/src/backend/media
-      - key: MEDIA_URL
-        value: /media/
-      - key: AI_SERVICE_URL
-        value: https://us-central1-aurora-457407.cloudfunctions.net/predict
-      - key: SECURE_SSL_REDIRECT
-        value: true
-      - key: SESSION_COOKIE_SECURE
-        value: true
-      - key: CSRF_COOKIE_SECURE
-        value: true
+      - key: WEB_CONCURRENCY
+        value: 4
+      - key: ALLOWED_HOSTS
+        value: ai-skin-analyzer-backend-patg.onrender.com
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://ai-skin-analyzer-frontend-0fkx.onrender.com
       - key: DATABASE_URL
         fromDatabase:
           name: ai-skin-analyzer-db
@@ -50,14 +31,15 @@ services:
     env: node
     buildCommand: |
       cd frontend
-      npm install --production=false
+      npm install
+      npm install -g vite
       npm run build
-    startCommand: cd frontend && npm run start
+    startCommand: cd frontend && npx vite preview --host 0.0.0.0 --port $PORT
     envVars:
+      - key: NODE_VERSION
+        value: 18.17.0
       - key: VITE_API_URL
         value: https://ai-skin-analyzer-backend-patg.onrender.com
-      - key: NODE_ENV
-        value: production
 
 databases:
   - name: ai-skin-analyzer-db
