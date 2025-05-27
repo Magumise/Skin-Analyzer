@@ -147,13 +147,9 @@ const AdminDashboard = () => {
         duration: 3000,
         isClosable: true,
       });
-    } catch (error: unknown) {
+    } catch (error) {
       console.error('Error details:', error);
-      
-      let errorMessage = 'Failed to load products from the server';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load products from the server';
       
       toast({
         title: 'Error loading products',
@@ -179,12 +175,10 @@ const AdminDashboard = () => {
         duration: 3000,
         isClosable: true,
       });
-    } catch (error: unknown) {
+    } catch (error) {
       console.error('Error loading users:', error);
-      let errorMessage = 'Failed to load users';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load users';
+      
       toast({
         title: 'Error loading users',
         description: errorMessage,

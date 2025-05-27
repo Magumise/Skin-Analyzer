@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // API configuration
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+export const API_URL = import.meta.env.VITE_API_URL || 'https://ai-skin-analyzer-backend-patg.onrender.com';
 
 // Create axios instance with default config
 const api = axios.create({

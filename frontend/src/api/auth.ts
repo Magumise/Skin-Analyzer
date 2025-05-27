@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://ai-skin-analyzer-nw9c.onrender.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://ai-skin-analyzer-backend-patg.onrender.com';
 
 const api = axios.create({
   baseURL: API_URL,
