@@ -225,49 +225,23 @@ const AdminDashboard = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
   
-  const handleUpdateProduct = async (productId: string | number) => {
+  const handleUpdateProduct = async (id: number, productData: any) => {
     try {
-      setIsLoading(true);
-      const productData: ProductData = {
-        price: Number(formData.price),
-        stock: Number(formData.stock),
-        name: formData.name,
-        brand: formData.brand,
-        category: formData.category,
-        description: formData.description,
-        image: formData.image,
-        suitable_for: formData.suitable_for,
-        targets: formData.targets,
-        when_to_apply: formData.when_to_apply,
-      };
-
-      const response = await productAPI.updateProduct(Number(productId), productData);
-      console.log('Product updated successfully:', response.data);
-      return response.data;
-    } catch (error: any) {
+      await productAPI.updateProduct(id, productData);
+      // Refresh product list
+      fetchProducts();
+    } catch (error) {
       console.error('Error updating product:', error);
-      if (error.response?.status === 401) {
-        // Token expired or invalid
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        navigate('/admin/login');
-        throw new Error('Session expired. Please login again.');
-      } else if (error.response?.status === 403) {
-        throw new Error('You do not have permission to update products.');
-      } else {
-        throw new Error(error.response?.data?.error || 'Failed to update product');
-      }
     }
   };
   
-  const handleUpdateProductImage = async (productId: string | number, imageFile: File) => {
+  const handleUpdateProductImage = async (id: number, image: File) => {
     try {
-      const response = await productAPI.updateProductImage(Number(productId), imageFile);
-      console.log('Product image updated successfully:', response.data);
-      return response.data;
+      await productAPI.updateProductImage(id, image);
+      // Refresh product list
+      fetchProducts();
     } catch (error) {
       console.error('Error updating product image:', error);
-      throw error;
     }
   };
   
@@ -412,7 +386,7 @@ const AdminDashboard = () => {
 
       if (selectedProduct) {
         // Update existing product
-        updatedProduct = await handleUpdateProduct(selectedProduct.id);
+        updatedProduct = await handleUpdateProduct(selectedProduct.id, productData);
         
         // Update image if it has changed and is a File object
         if (formData.image instanceof File) {
@@ -563,6 +537,23 @@ const AdminDashboard = () => {
         duration: 5000,
         isClosable: true,
       });
+    }
+  };
+
+  // Fix instanceof errors
+  const handleError = (error: unknown) => {
+    if (error instanceof Error) {
+      console.error('Error:', error.message);
+    } else {
+      console.error('Unknown error occurred');
+    }
+  };
+
+  const handleApiError = (error: unknown) => {
+    if (error instanceof Error) {
+      console.error('API Error:', error.message);
+    } else {
+      console.error('Unknown API error occurred');
     }
   };
 

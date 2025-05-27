@@ -9,31 +9,12 @@ const AIModelTest = () => {
   const toast = useToast();
 
   const handleTest = async () => {
-    setIsLoading(true);
-    setError(null);
-    setResult(null);
-
+    if (!selectedImage) return;
     try {
-      const response = await testAIModel();
-      setResult(response);
-      toast({
-        title: 'Test Successful',
-        description: 'AI model endpoint is working correctly',
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error occurred');
-      toast({
-        title: 'Test Failed',
-        description: 'Could not connect to AI model endpoint',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
-    } finally {
-      setIsLoading(false);
+      const response = await testAIModel(selectedImage);
+      setResult(response.data);
+    } catch (error) {
+      console.error('Error testing AI model:', error);
     }
   };
 
