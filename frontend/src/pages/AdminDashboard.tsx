@@ -132,12 +132,7 @@ const AdminDashboard = () => {
     setIsLoading(true);
     try {
       console.log('Fetching products from server...');
-      const response = await productAPI.get('/api/products/', {
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await productAPI.getAll();
       console.log('Server response:', response);
       
       if (!response.data) {
@@ -152,25 +147,12 @@ const AdminDashboard = () => {
         duration: 3000,
         isClosable: true,
       });
-    } catch (error: any) {
-      console.error('Error details:', {
-        message: error.message,
-        response: error.response,
-        request: error.request,
-        config: error.config
-      });
+    } catch (error: unknown) {
+      console.error('Error details:', error);
       
       let errorMessage = 'Failed to load products from the server';
-      if (error.response) {
-        errorMessage = `Server error: ${error.response.status} - ${error.response.statusText}`;
-        if (error.response.status === 401) {
-          navigate('/admin/login');
-          return;
-        }
-      } else if (error.request) {
-        errorMessage = 'No response received from server. Please check if the server is running.';
-      } else {
-        errorMessage = `Error: ${error.message}`;
+      if (error instanceof Error) {
+        errorMessage = error.message;
       }
       
       toast({
@@ -188,12 +170,7 @@ const AdminDashboard = () => {
   const fetchUsers = async () => {
     setIsLoadingUsers(true);
     try {
-      const response = await productAPI.get('/api/users/', {
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await productAPI.getAll();
       setUsers(response.data);
       toast({
         title: 'Users loaded',
@@ -202,11 +179,15 @@ const AdminDashboard = () => {
         duration: 3000,
         isClosable: true,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error loading users:', error);
+      let errorMessage = 'Failed to load users';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       toast({
         title: 'Error loading users',
-        description: error.message || 'Failed to load users',
+        description: errorMessage,
         status: 'error',
         duration: 5000,
         isClosable: true,
