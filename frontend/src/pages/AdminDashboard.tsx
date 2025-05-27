@@ -93,9 +93,9 @@ interface FormData {
 // Initial empty products array (will be populated from API)
 const initialProducts: any[] = [];
 
-// Add this type guard function at the top of the file, after the imports
+// Update the isError type guard function
 function isError(error: unknown): error is Error {
-  return error instanceof Error;
+  return error !== null && typeof error === 'object' && 'message' in error;
 }
 
 const AdminDashboard = () => {
@@ -528,19 +528,27 @@ const AdminDashboard = () => {
   };
 
   const handleError = (error: unknown) => {
-    if (isError(error)) {
-      console.error('Error:', error.message);
-    } else {
-      console.error('Unknown error occurred');
-    }
+    console.error('Error:', error);
+    const errorMessage = isError(error) ? error.message : 'An unexpected error occurred';
+    toast({
+      title: 'Error',
+      description: errorMessage,
+      status: 'error',
+      duration: 5000,
+      isClosable: true,
+    });
   };
 
   const handleApiError = (error: unknown) => {
-    if (isError(error)) {
-      console.error('API Error:', error.message);
-    } else {
-      console.error('Unknown API error occurred');
-    }
+    console.error('API Error:', error);
+    const errorMessage = isError(error) ? error.message : 'Failed to communicate with the server';
+    toast({
+      title: 'API Error',
+      description: errorMessage,
+      status: 'error',
+      duration: 5000,
+      isClosable: true,
+    });
   };
 
   return (
