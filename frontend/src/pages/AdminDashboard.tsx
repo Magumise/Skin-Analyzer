@@ -63,6 +63,30 @@ import './AdminDashboard.css';
 import ProductImage from '../components/ProductImage';
 import { productAPI } from '../services/api';
 
+interface User {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  age?: number;
+  last_skin_condition?: string;
+  is_active: boolean;
+}
+
+interface Product {
+  id: number;
+  name: string;
+  brand: string;
+  category: string;
+  description: string;
+  price: number;
+  stock: number;
+  image: string;
+  suitable_for: string;
+  targets: string;
+  when_to_apply: string;
+}
+
 interface ProductData {
   id?: number;
   price: number;
@@ -91,7 +115,7 @@ interface FormData {
 }
 
 // Initial empty products array (will be populated from API)
-const initialProducts: any[] = [];
+const initialProducts: Product[] = [];
 
 // Update the isError type guard function
 function isError(error: unknown): error is Error {
@@ -104,8 +128,8 @@ const AdminDashboard = () => {
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
   
-  const [products, setProducts] = useState(initialProducts);
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -121,7 +145,7 @@ const AdminDashboard = () => {
     when_to_apply: ''
   });
   
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   
   const cardBg = useColorModeValue('white', 'gray.800');
@@ -205,13 +229,13 @@ const AdminDashboard = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
   
-  const handleUpdateProduct = async (id: number, productData: any) => {
+  const handleUpdateProduct = async (id: number, productData: ProductData) => {
     try {
       await productAPI.updateProduct(id, productData);
       // Refresh product list
       fetchProducts();
     } catch (error) {
-      console.error('Error updating product:', error);
+      handleError(error);
     }
   };
   
@@ -298,7 +322,7 @@ const AdminDashboard = () => {
     onOpen();
   };
   
-  const openEditProductModal = (product: any) => {
+  const openEditProductModal = (product: Product) => {
     setSelectedProduct(product);
     setFormData({
       name: product.name || '',
@@ -323,7 +347,7 @@ const AdminDashboard = () => {
       const productDataCopy = { ...productData };
       productDataCopy.id = String(productDataCopy.id);
       
-      const response = await fetch('http://localhost:8000/api/products/add/', {
+      const response = await fetch('https://ai-skin-analyzer-backend-patg.onrender.com/api/products/add/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -466,7 +490,7 @@ const AdminDashboard = () => {
 
   const handleDeleteUser = async (userId: number) => {
     try {
-      await axios.delete(`http://localhost:8000/api/users/${userId}/`, {
+      await axios.delete(`https://ai-skin-analyzer-backend-patg.onrender.com/api/users/${userId}/`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
@@ -481,21 +505,14 @@ const AdminDashboard = () => {
         duration: 3000,
         isClosable: true,
       });
-    } catch (error: any) {
-      console.error('Error deleting user:', error);
-      toast({
-        title: 'Error deleting user',
-        description: error.message || 'Failed to delete user',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
+    } catch (error) {
+      handleError(error);
     }
   };
 
   const handleToggleUserStatus = async (userId: number, isActive: boolean) => {
     try {
-      await axios.patch(`http://localhost:8000/api/users/${userId}/`, {
+      await axios.patch(`https://ai-skin-analyzer-backend-patg.onrender.com/api/users/${userId}/`, {
         is_active: !isActive
       }, {
         headers: {
@@ -515,15 +532,8 @@ const AdminDashboard = () => {
         duration: 3000,
         isClosable: true,
       });
-    } catch (error: any) {
-      console.error('Error updating user status:', error);
-      toast({
-        title: 'Error updating user status',
-        description: error.message || 'Failed to update user status',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
+    } catch (error) {
+      handleError(error);
     }
   };
 
