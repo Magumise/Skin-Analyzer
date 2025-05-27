@@ -522,7 +522,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Fix instanceof errors
   const handleError = (error: unknown) => {
     if (error instanceof Error) {
       console.error('Error:', error.message);

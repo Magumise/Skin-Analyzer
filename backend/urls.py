@@ -27,23 +27,16 @@ from rest_framework.permissions import AllowAny
 @permission_classes([AllowAny])
 def root_view(request):
     return Response({
-        "status": "success",
-        "message": "Welcome to AI Skin Analyzer API",
-        "version": "1.0.0",
-        "endpoints": {
-            "authentication": {
-                "register": "/api/users/",
-                "login": "/api/token/",
-                "refresh": "/api/token/refresh/"
-            },
-            "products": "/api/products/",
-            "analysis": "/api/images/",
-            "admin": "/admin/"
+        'message': 'Welcome to the AI Skin Analyzer API',
+        'version': '1.0.0',
+        'endpoints': {
+            'admin': '/admin/',
+            'api': '/api/',
         }
     })
 
 urlpatterns = [
     path('', root_view, name='root'),
     path('admin/', admin.site.urls),
-    path('api/', include('skin_analyzer.urls')),
+    path('api/', include('rest_framework.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
