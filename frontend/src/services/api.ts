@@ -120,10 +120,21 @@ export const authAPI = {
 
 export const productAPI = {
   getAll: () => api.get('/api/products/'),
+  get: (id: number) => api.get(`/api/products/${id}/`),
   create: (product: any) => api.post('/api/products/', product),
   update: (id: number, product: any) => api.put(`/api/products/${id}/`, product),
+  updateProduct: (id: number, product: any) => api.patch(`/api/products/${id}/`, product),
   delete: (id: number) => api.delete(`/api/products/${id}/`),
   updateImage: (id: number, image: File) => {
+    const formData = new FormData();
+    formData.append('image', image);
+    return api.patch(`/api/products/${id}/update_image/`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  updateProductImage: (id: number, image: File) => {
     const formData = new FormData();
     formData.append('image', image);
     return api.patch(`/api/products/${id}/update_image/`, formData, {

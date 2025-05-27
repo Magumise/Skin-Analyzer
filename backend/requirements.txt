@@ -10,7 +10,6 @@ python-dotenv==1.0.0
 gunicorn==21.2.0
 whitenoise==6.6.0
 django-storages==1.14.2
-django-cacheops==6.1.1
 django-redis==5.4.0
 redis==5.0.1
 django-debug-toolbar==4.2.0
