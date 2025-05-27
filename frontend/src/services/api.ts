@@ -1,17 +1,14 @@
 import axios from 'axios';
 
 // API configuration
-const API_URL = import.meta.env.VITE_API_URL || 'https://ai-skin-analyzer-nw9c.onrender.com/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
   },
-  withCredentials: true,
-  timeout: 30000, // 30 seconds
 });
 
 // Request interceptor
@@ -58,20 +55,19 @@ api.interceptors.response.use(
           throw new Error('No refresh token available');
         }
 
-        const response = await api.post('/users/token/refresh/', {
-          refresh: refreshToken
+        const response = await axios.post(`${API_URL}/api/token/refresh/`, {
+          refresh: refreshToken,
         });
 
-        const { access } = response.data;
-        localStorage.setItem('access_token', access);
+        localStorage.setItem('access_token', response.data.access);
 
-        originalRequest.headers.Authorization = `Bearer ${access}`;
+        originalRequest.headers.Authorization = `Bearer ${response.data.access}`;
         return api(originalRequest);
       } catch (refreshError) {
         console.error('Token refresh failed:', refreshError);
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
-        window.location.href = '/auth';
+        window.location.href = '/login';
         return Promise.reject(new Error('Session expired. Please login again.'));
       }
     }
@@ -85,39 +81,11 @@ api.interceptors.response.use(
 // Authentication API methods
 export const authAPI = {
   // Register new user
-  register: async (userData: any) => {
-    try {
-      console.log('Sending registration data:', userData);
-      const response = await api.post('/users/register/', userData);
-      if (response.data.access) {
-        localStorage.setItem('access_token', response.data.access);
-      }
-      if (response.data.refresh) {
-        localStorage.setItem('refresh_token', response.data.refresh);
-      }
-      return response.data;
-    } catch (error) {
-      console.error('Registration error:', error);
-      throw error;
-    }
-  },
+  register: (userData: any) => api.post('/api/users/', userData),
 
   // Login user
-  login: async (credentials: { email: string; password: string }) => {
-    try {
-      const response = await api.post('/users/login/', credentials);
-      if (response.data.access) {
-        localStorage.setItem('access_token', response.data.access);
-      }
-      if (response.data.refresh) {
-        localStorage.setItem('refresh_token', response.data.refresh);
-      }
-      return response.data;
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    }
-  },
+  login: (credentials: { email: string; password: string }) =>
+    api.post('/api/token/', credentials),
 
   // Logout user
   logout: async () => {
@@ -144,7 +112,50 @@ export const authAPI = {
       console.error('Token verification error:', error);
       throw error;
     }
-  }
+  },
+
+  // Refresh token
+  refreshToken: (refresh: string) => api.post('/api/token/refresh/', { refresh }),
+};
+
+export const productAPI = {
+  getAll: () => api.get('/api/products/'),
+  create: (product: any) => api.post('/api/products/', product),
+  update: (id: number, product: any) => api.put(`/api/products/${id}/`, product),
+  delete: (id: number) => api.delete(`/api/products/${id}/`),
+  updateImage: (id: number, image: File) => {
+    const formData = new FormData();
+    formData.append('image', image);
+    return api.patch(`/api/products/${id}/update_image/`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+};
+
+export const analysisAPI = {
+  uploadImage: (image: File) => {
+    const formData = new FormData();
+    formData.append('file', image);
+    return api.post('/api/images/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  analyzeImage: (imageId: number, analysisData: any) =>
+    api.post(`/api/images/${imageId}/analyze/`, analysisData),
+};
+
+export const testAIModel = async (image: File) => {
+  const formData = new FormData();
+  formData.append('file', image);
+  return api.post('/api/test-ai/', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
 };
 
 export default api;
