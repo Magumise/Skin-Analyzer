@@ -8,7 +8,7 @@ services:
       python manage.py makemigrations
       python manage.py migrate
       python manage.py collectstatic --noinput
-      DJANGO_SUPERUSER_USERNAME=admin DJANGO_SUPERUSER_PASSWORD=admin123 DJANGO_SUPERUSER_EMAIL=admin@example.com python manage.py createsuperuser --noinput
+      python manage.py loaddata fixtures/superuser.json
     startCommand: cd backend && gunicorn backend.wsgi:application
     envVars:
       - key: PYTHON_VERSION
