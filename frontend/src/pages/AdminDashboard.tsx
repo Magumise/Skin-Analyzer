@@ -244,7 +244,7 @@ const AdminDashboard = () => {
             duration: 3000,
             isClosable: true,
           });
-        } catch (error: unknown) {
+        } catch (error) {
           console.error('Error updating product image:', error);
           const errorMessage = error instanceof Error ? error.message : "Please try again";
           toast({
@@ -259,7 +259,7 @@ const AdminDashboard = () => {
       
       // Update the form data with the new image
       setFormData(prev => ({ ...prev, image: URL.createObjectURL(file) }));
-    } catch (error: unknown) {
+    } catch (error) {
       console.error('Error handling image change:', error);
       const errorMessage = error instanceof Error ? error.message : "Please try again";
       toast({
@@ -377,8 +377,10 @@ const AdminDashboard = () => {
             });
           } catch (error) {
             console.error('Error updating product image:', error);
+            const errorMessage = error instanceof Error ? error.message : "Please try again";
             toast({
               title: "Error updating product image",
+              description: errorMessage,
               status: "error",
               duration: 3000,
               isClosable: true,
@@ -401,8 +403,10 @@ const AdminDashboard = () => {
             });
           } catch (error) {
             console.error('Error uploading product image:', error);
+            const errorMessage = error instanceof Error ? error.message : "Please try again";
             toast({
               title: "Error uploading product image",
+              description: errorMessage,
               status: "error",
               duration: 3000,
               isClosable: true,
@@ -428,9 +432,10 @@ const AdminDashboard = () => {
       fetchProducts();
     } catch (error) {
       console.error('Error submitting form:', error);
+      const errorMessage = error instanceof Error ? error.message : "Please try again";
       toast({
         title: "Error saving product",
-        description: "Please try again",
+        description: errorMessage,
         status: "error",
         duration: 3000,
         isClosable: true,

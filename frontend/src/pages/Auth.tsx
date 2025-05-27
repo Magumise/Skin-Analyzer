@@ -682,7 +682,7 @@ const Auth = () => {
       </Container>
       
       {/* Add the API Test component */}
-      {process.env.NODE_ENV === 'development' && (
+      {import.meta.env.MODE === 'development' && (
         <div className="mt-8">
           <APITest />
         </div>

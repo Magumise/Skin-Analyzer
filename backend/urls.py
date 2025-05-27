@@ -19,9 +19,31 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def root_view(request):
+    return Response({
+        "status": "success",
+        "message": "Welcome to AI Skin Analyzer API",
+        "version": "1.0.0",
+        "endpoints": {
+            "authentication": {
+                "register": "/api/users/",
+                "login": "/api/token/",
+                "refresh": "/api/token/refresh/"
+            },
+            "products": "/api/products/",
+            "analysis": "/api/images/",
+            "admin": "/admin/"
+        }
+    })
 
 urlpatterns = [
-    path('', lambda request: redirect('admin:index'), name='root'),
+    path('', root_view, name='root'),
     path('admin/', admin.site.urls),
     path('api/', include('skin_analyzer.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

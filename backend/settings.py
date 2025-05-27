@@ -29,7 +29,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-8f7d3b2a1c9e6f4a5b8c2d1e3f
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = [
-    'ai-skin-analyzer-backend.onrender.com',
+    'ai-skin-analyzer-backend-patg.onrender.com',
     'localhost',
     '127.0.0.1',
 ]
@@ -244,7 +244,7 @@ CORS_ALLOW_HEADERS = [
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS
 CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
-CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
+CORS_PREFLIGHT_MAX_AGE = 86400
 
 # Cache settings
 CACHES = {
