@@ -11,6 +11,12 @@ export default defineConfig({
   preview: {
     port: parseInt(process.env.PORT || '5173'),
     host: '0.0.0.0',
+    allowedHosts: [
+      'ai-skin-analyzer-frontend-0fkx.onrender.com',
+      'ai-skin-analyzer-frontend.onrender.com',
+      'localhost',
+      '127.0.0.1'
+    ]
   },
   define: {
     'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL),
