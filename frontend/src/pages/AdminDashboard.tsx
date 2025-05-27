@@ -250,11 +250,12 @@ const AdminDashboard = () => {
             duration: 3000,
             isClosable: true,
           });
-        } catch (error) {
+        } catch (error: unknown) {
           console.error('Error updating product image:', error);
+          const errorMessage = error instanceof Error ? error.message : "Please try again";
           toast({
             title: "Failed to update product image",
-            description: error instanceof Error ? error.message : "Please try again",
+            description: errorMessage,
             status: "error",
             duration: 3000,
             isClosable: true,
@@ -264,11 +265,12 @@ const AdminDashboard = () => {
       
       // Update the form data with the new image
       setFormData(prev => ({ ...prev, image: URL.createObjectURL(file) }));
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error handling image change:', error);
+      const errorMessage = error instanceof Error ? error.message : "Please try again";
       toast({
         title: "Error handling image",
-        description: error instanceof Error ? error.message : "Please try again",
+        description: errorMessage,
         status: "error",
         duration: 3000,
         isClosable: true,
