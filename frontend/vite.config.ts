@@ -5,8 +5,12 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 5173,
-    host: true
+    port: process.env.PORT ? parseInt(process.env.PORT) : 5173,
+    host: '0.0.0.0',
+  },
+  preview: {
+    port: process.env.PORT ? parseInt(process.env.PORT) : 5173,
+    host: '0.0.0.0',
   },
   resolve: {
     alias: {
@@ -16,7 +20,8 @@ export default defineConfig({
   assetsInclude: ['**/*.png'],
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false,
+    minify: true,
     rollupOptions: {
       output: {
         manualChunks: {

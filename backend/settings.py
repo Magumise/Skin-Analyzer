@@ -23,12 +23,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-8f7d3b2a1c9e6f4a5b8c2d1e3f7a9b4c6d8e2f5a7b9c1d3e5f7a9b2c4d6e8f0a2')
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-8f7d3b2a1c9e6f4a5b8c2d1e3f7a9b4c6d8e2f5a7b9c1d3e5f7a9b2c4d6e8f0a2')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DJANGO_DEBUG', 'False').lower() == 'true'
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'ai-skin-analyzer-nw9c.onrender.com,localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = [
+    'ai-skin-analyzer-backend.onrender.com',
+    'localhost',
+    '127.0.0.1',
+]
 
 
 # Application definition
@@ -49,6 +53,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -131,6 +136,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
 MEDIA_URL = '/media/'
@@ -205,7 +211,11 @@ SIMPLE_JWT = {
 }
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173,https://ai-skin-analyzer-nw9c.onrender.com,https://frontend-two-mu-37.vercel.app').split(',')
+CORS_ALLOWED_ORIGINS = [
+    "https://ai-skin-analyzer-frontend.onrender.com",
+    "http://localhost:5173",
+    "http://localhost:3000",
+]
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -275,3 +285,9 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_REFERRER_POLICY = 'same-origin'
 SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
 SECURE_CROSS_ORIGIN_EMBEDDER_POLICY = 'require-corp'
+
+# CSRF settings
+CSRF_TRUSTED_ORIGINS = [
+    "https://ai-skin-analyzer-frontend.onrender.com",
+    "https://ai-skin-analyzer-backend.onrender.com",
+]
