@@ -4,11 +4,19 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import User, Group
+from django.contrib.auth import get_user_model
 from .models import UploadedImage, AnalysisResult, Product, Appointment
 
 class CustomAdminSite(AdminSite):
     def has_permission(self, request):
-        # Always return True to allow access
+        # Create a superuser if none exists
+        User = get_user_model()
+        if not User.objects.filter(is_superuser=True).exists():
+            User.objects.create_superuser(
+                username='admin',
+                email='admin@example.com',
+                password='admin123'
+            )
         return True
 
     def login(self, request, extra_context=None):
