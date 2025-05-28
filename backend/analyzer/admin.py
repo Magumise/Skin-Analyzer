@@ -1,16 +1,28 @@
 from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import User, Group
+from django.contrib.auth import get_user_model
 from .models import UploadedImage, AnalysisResult, Product, Appointment
 
 class CustomAdminSite(AdminSite):
     def has_permission(self, request):
-        # Always return True to bypass authentication
+        # Create a superuser if none exists
+        User = get_user_model()
+        if not User.objects.filter(is_superuser=True).exists():
+            User.objects.create_superuser(
+                username='admin',
+                email='admin@example.com',
+                password='admin123'
+            )
         return True
 
     def login(self, request, extra_context=None):
         # Skip login and go straight to index
         return self.index(request)
+
+    def get_app_list(self, request):
+        # Return all apps and models
+        return self._registry.keys()
 
 # Create custom admin site instance
 admin_site = CustomAdminSite(name='admin')
