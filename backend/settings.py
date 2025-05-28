@@ -145,6 +145,58 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Security settings
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+else:
+    # Development settings - more permissive
+    SECURE_SSL_REDIRECT = False
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False
+    X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+# Additional security headers
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_REFERRER_POLICY = 'same-origin'
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
+SECURE_CROSS_ORIGIN_EMBEDDER_POLICY = 'require-corp'
+
+# CSRF settings
+CSRF_TRUSTED_ORIGINS = [
+    "https://ai-skin-analyzer-frontend.onrender.com",
+    "https://ai-skin-analyzer-backend-patg.onrender.com",
+    "http://localhost:5173",
+    "http://localhost:3000",
+]
+
+# Session settings
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+SESSION_CACHE_ALIAS = 'default'
+SESSION_COOKIE_AGE = 86400  # 24 hours
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_SECURE = False  # Set to False for development
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# Authentication settings
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.AllowAllUsersModelBackend',
+]
+
+# Admin settings
+ADMIN_ENABLED = True
+ADMIN_SITE_HEADER = "AI Skin Analyzer Admin"
+ADMIN_SITE_TITLE = "AI Skin Analyzer Admin Portal"
+ADMIN_INDEX_TITLE = "Welcome to AI Skin Analyzer Admin Portal"
+
 # REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -253,44 +305,3 @@ CACHES = {
         }
     }
 }
-
-# Session settings
-SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
-SESSION_CACHE_ALIAS = 'default'
-SESSION_COOKIE_AGE = 86400  # 24 hours
-SESSION_SAVE_EVERY_REQUEST = True
-SESSION_COOKIE_SECURE = False  # Set to False for development
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = 'Lax'
-
-# Security settings
-if not DEBUG:
-    SECURE_SSL_REDIRECT = True
-    CSRF_COOKIE_SECURE = True
-    SESSION_COOKIE_SECURE = True
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    X_FRAME_OPTIONS = 'DENY'
-    SECURE_HSTS_SECONDS = 31536000  # 1 year
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-else:
-    # Development settings - more permissive
-    SECURE_SSL_REDIRECT = False
-    CSRF_COOKIE_SECURE = False
-    SESSION_COOKIE_SECURE = False
-    X_FRAME_OPTIONS = 'SAMEORIGIN'
-
-# Additional security headers
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_REFERRER_POLICY = 'same-origin'
-SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
-SECURE_CROSS_ORIGIN_EMBEDDER_POLICY = 'require-corp'
-
-# CSRF settings
-CSRF_TRUSTED_ORIGINS = [
-    "https://ai-skin-analyzer-frontend.onrender.com",
-    "https://ai-skin-analyzer-backend-patg.onrender.com",
-    "http://localhost:5173",
-    "http://localhost:3000",
-]
