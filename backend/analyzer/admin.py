@@ -1,5 +1,23 @@
 from django.contrib import admin
+from django.contrib.admin.sites import AdminSite
+from django.contrib.auth.models import User, Group
 from .models import UploadedImage, AnalysisResult, Product, Appointment
+
+class CustomAdminSite(AdminSite):
+    def has_permission(self, request):
+        # Always return True to bypass authentication
+        return True
+
+    def login(self, request, extra_context=None):
+        # Skip login and go straight to index
+        return self.index(request)
+
+# Create custom admin site instance
+admin_site = CustomAdminSite(name='admin')
+
+# Register models with custom admin site
+admin_site.register(User)
+admin_site.register(Group)
 
 @admin.register(UploadedImage)
 class UploadedImageAdmin(admin.ModelAdmin):
@@ -30,6 +48,6 @@ class AppointmentAdmin(admin.ModelAdmin):
     ordering = ('-date',)
 
 # Configure admin site
-admin.site.site_header = "AI Skin Analyzer Admin"
-admin.site.site_title = "AI Skin Analyzer Admin Portal"
-admin.site.index_title = "Welcome to AI Skin Analyzer Admin Portal"
+admin_site.site_header = "AI Skin Analyzer Admin"
+admin_site.site_title = "AI Skin Analyzer Admin Portal"
+admin_site.index_title = "Welcome to AI Skin Analyzer Admin Portal"
