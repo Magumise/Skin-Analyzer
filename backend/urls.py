@@ -39,4 +39,5 @@ urlpatterns = [
     path('', root_view, name='root'),
     path('admin/', admin.site.urls),
     path('api/', include('rest_framework.urls')),
+    path('', include('skin_analyzer.urls')),  # Include skin_analyzer URLs
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
