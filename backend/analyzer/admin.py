@@ -7,6 +7,26 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth import get_user_model
 from .models import UploadedImage, AnalysisResult, Product, Appointment
 
+class UploadedImageAdmin(admin.ModelAdmin):
+    list_display = ('user', 'uploaded_at', 'image')
+    list_filter = ('uploaded_at',)
+    search_fields = ('user__username',)
+
+class AnalysisResultAdmin(admin.ModelAdmin):
+    list_display = ('user', 'created_at', 'image')
+    list_filter = ('created_at',)
+    search_fields = ('user__username',)
+
+class ProductAdmin(admin.ModelAdmin):
+    list_display = ('name', 'price', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('name', 'description')
+
+class AppointmentAdmin(admin.ModelAdmin):
+    list_display = ('user', 'date', 'status', 'created_at')
+    list_filter = ('status', 'date', 'created_at')
+    search_fields = ('user__username',)
+
 class CustomAdminSite(AdminSite):
     def has_permission(self, request):
         # Create a superuser if none exists
@@ -32,10 +52,10 @@ admin_site = CustomAdminSite(name='admin')
 # Register all models with the custom admin site
 admin_site.register(User)
 admin_site.register(Group)
-admin_site.register(UploadedImage)
-admin_site.register(AnalysisResult)
-admin_site.register(Product)
-admin_site.register(Appointment)
+admin_site.register(UploadedImage, UploadedImageAdmin)
+admin_site.register(AnalysisResult, AnalysisResultAdmin)
+admin_site.register(Product, ProductAdmin)
+admin_site.register(Appointment, AppointmentAdmin)
 
 # Configure admin site
 admin_site.site_header = "AI Skin Analyzer Admin"
